@@ -1,0 +1,188 @@
+* content viewer notes
+
+* Basic idea(s)
+
+  - [ ] The starting folder is /media
+    - See Locations below for more info
+  - [ ] List all folders =(directory #p"/home/jfh/code/lisp/source/web/todo/todo-project/*")=
+  - [ ] List all images
+    #+begin_src lisp
+      (let ((wildcards '("*.png" "*.jpg"))
+            (result))
+        (dolist (wc wildcards result)
+          (push (directory (format nil "/home/jfh/code/lisp/source/web/todo/todo-project/~a" wc)) result)))
+    #+end_src
+  - [ ] List all videos
+    #+begin_src lisp
+      (let ((wildcards '("*.mov" "*.mp4"))
+            (result))
+        (dolist (wc wildcards result)
+          (push (directory (format nil "/home/jfh/code/lisp/source/web/todo/todo-project/~a" wc)) result)))
+    #+end_src
+  - [ ] Use paging (defparameter and/or config)
+  - [ ] Split page into 2 - left for item list, right for images and videos
+  - [ ] each list item is a link to display in the right panel
+  - [ ] the right panel will also have the option to display "full screen" (but do it "spa" style - no new tabs or pages)
+    
+
+* Linking
+** Bash
+   #+begin_src sh
+     ln -s ~/notes/General/org/ my-notes
+   #+end_src
+*** Notes
+- linked folders are immediately picked up!
+** Lisp
+   #+begin_src lisp
+(UIOP:RUN-PROGRAM "ln -s ~/notes/General/org/ my-notes" :output t)
+   #+end_src   
+*** Notes
+    - Haven't actually nested it yet, but "ls -lh" worked, so have high confidence
+      
+
+* Locations
+  - I can read in locations like this:
+    #+begin_src lisp
+      (read-complete-file-by-line "junk/test.txt")
+    #+end_src
+    - Then exec link if folder not found in /media
+
+
+* Let's do some coding!!
+  - [ ] Get list of files
+    - Just use /media to begin
+      - [X] Any folders can be indexed in an array (save array in session)
+        #+begin_src lisp
+          #("may2020photos" "april2019videos")
+          (makearray 'view-folders)
+          ;; actual example of make-array with strings
+          (make-array 3 :element-type 'string :initial-contents '("one" "two" "three"))
+          (aref * 1) ;; aref is generally faster than elt
+        #+end_src
+        #+begin_src html
+          <a href="./?i=1">
+        #+end_src
+        #+begin_src lisp
+          (setf view-folder (aref request-i view-folders))
+        #+end_src
+    - [ ] Determine type of each file - image or video or text or unknown?
+      - [ ] Storing info
+        - [ ] Use a class to store file-info
+          - [ ] File timestamp - maybe just also get it from geolocation info?
+          - [ ] File type - image or video or text or unknown
+          - [ ] Geolocation info
+      - [ ] Generate correct type of html per type - <img> or <video> or <a> or <p>
+      - [ ] Associate click handler to display full screen view "SPA style"
+  - [ ] Save list of "favorites"
+    - [ ] multiple, named lists
+    - [ ] Display the lists
+      - [ ] Each list acts like a virtual "folder" - same logic, just the list of files comes from a different function!
+  - [ ] Get file locations
+    - [ ] Link to /media if not already present
+  - [ ] Handle paging
+  - [ ] Try out calling Google Geolocation API
+  - [ ] Try using osicat to get video file data
+
+
+* exif
+** ql: 'zpb-exif
+** site: https://xach.com/lisp/zpb-exif/
+** alternative: https://cl-pdx.com/static/exifinfo.lisp
+** Examples
+*** get gps exif info from photo
+    #+begin_src lisp
+      (defparameter *jfh-exif* (make-exif #P"/home/jfh/code/lisp/source/web/content-viewer/media/photos/May2019/man.jpg"))
+      (list
+       (exif-value "GPSLatitude" *jfh-exif*) ;; return array of deg min sec
+       (exif-value "GPSLatitudeRef" *jfh-exif*) ;; return string
+       (exif-value "GPSLongitude" *jfh-exif*) ;; return array of deg min sec
+       (exif-value "GPSLongitudeRef" *jfh-exif*)) ;; return string
+      ;; => (#(33 53 749/50) "N" #(130 52 5703/100) "E")
+      (exif-value :DateTimeOriginal *jfh-exif*)
+      ;; => "2017:11:10 15:45:52"
+    #+end_src
+
+*** calling Google Geolocation API (C#)
+    #+begin_src java
+       public class GeocodeHelper
+       {
+      // use caching so we don't over-use the API
+               public async Task<string> ReverseGeocode(DecimalCoordinatePairModel coordinateModel)
+               {
+                   var helper = new CacheHelper("./");
+                   var cachedLocationText = await helper.ReadFromCache(coordinateModel);
+                   if (string.IsNullOrWhiteSpace(cachedLocationText))
+                   {
+                      var locationText = await CallReverseGeocodeApi(coordinateModel);
+                      await helper.SaveToCache(coordinateModel, locationText);
+                      return locationText;
+                   }
+
+                   return cachedLocationText;
+               }
+
+      // actual call to the API
+               private async Task<string> CallReverseGeocodeApi(DecimalCoordinatePairModel coordinateModel)
+               {
+                   var url = $"https://maps.googleapis.com/maps/api/geocode/json?latlng={coordinateModel.Latitude},{coordinateModel.Longitude}&language=ja&key={apiKey}";
+                   var client = new HttpClient();
+                   var response = await client.GetAsync(url);
+                   var jsonResponse = await response.Content.ReadAsStringAsync();
+                   dynamic obj = JsonConvert.DeserializeObject(jsonResponse);
+                   var result = $"{obj.results[0].address_components[2].long_name} {obj.results[0].address_components[3].long_name} {obj.results[0].address_components[5].long_name}";
+                   return result;
+               }
+       }
+    #+end_src
+
+*** http get (drakma)
+    #+begin_src lisp
+(defun fetch-html (link)
+  "fetch html for given relative path (will combine with base URL)"
+  (let ((html-file (format nil "~a/~a" (get-app-dir) (string-replace link "/" "-")))
+        (html (drakma:http-request (build-url link))))
+    (with-open-file
+        (stream html-file :direction :output :if-exists :supersede)
+      (format stream "~a" html))))
+    #+end_src
+
+*** json parse (cl-json)
+    #+begin_src lisp
+(json:decode-json-from-string raw-data)
+    #+end_src
+
+
+* File dates
+- will need to use something like "osicat" for the videos ...
+
+* Test
+** JSON API
+- URL: https://jsonplaceholder.typicode.com/posts
+#+begin_src lisp
+    (let* ((url "https://jsonplaceholder.typicode.com/posts")
+           (json (read-from-string (format nil "~a" (drakma:http-request url)))))
+      (cl-json:decode-json-from-string 
+       (do 
+        ((i 0 (incf i))
+         (str ""))
+        ((>= i (length json)) str)
+         (setf str
+               (concatenate
+                'string
+                str
+                (string (code-char (aref json i))))))))
+
+  (let ((html (get-html-like-above)))
+    (format t "The title is: ~a" (cdr (assoc :title (car html)))))
+#+end_src     
+
+* html pseudo code
+(div :id "listDiv"
+  (a :href "fileInfo.full-relative-path-to-file" file-name (if fileInfo.starred "*" '') onclick="update-preview(fileInfo))
+
+(div :id "previewDiv"
+  (cond
+    ((=== fileInfo.fileType "image") (renderImage))
+    ((=== fileInfo.fileType "video") (renderVideo))
+    ((=== fileInfo.fileType "text") (renderText))
+    (t (renderUnknown))))
