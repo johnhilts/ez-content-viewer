@@ -49,7 +49,7 @@
 
 
 * Let's do some coding!!
-  - [ ] Get list of files
+  - [-] Get list of files
     - Just use /media to begin
       - [X] Any folders can be indexed in an array (save array in session)
         #+begin_src lisp
@@ -65,11 +65,11 @@
         #+begin_src lisp
           (setf view-folder (aref request-i view-folders))
         #+end_src
-    - [ ] Determine type of each file - image or video or text or unknown?
-      - [ ] Storing info
-        - [ ] Use a class to store file-info
+    - [-] Determine type of each file - image or video or text or unknown?
+      - [-] Storing info
+        - [-] Use a class to store file-info
           - [ ] File timestamp - maybe just also get it from geolocation info?
-          - [ ] File type - image or video or text or unknown
+          - [X] File type - image or video or text or unknown
           - [ ] Geolocation info
       - [ ] Generate correct type of html per type - <img> or <video> or <a> or <p>
       - [ ] Associate click handler to display full screen view "SPA style"
