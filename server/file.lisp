@@ -3,11 +3,19 @@
 (define-info-class file path timestamp content-type)
 (define-info-class content folders images videos) ;; note: I can't inline this - it will break compilation if I don't do this on the top level
 
-(defmethod get-content-timestamp ((file-info file-info))
+(defmethod get-content-timestamp ((file-info file-info)) ; maybe convert this to defun and take 2 parameters then return timestamp and geo lat+lng
   (case (file-content-type file-info)
-     (let ((exif (make-exif (file-path file-info))))
-       (exif-value :DateTimeOriginal exif)))
     (image
+     (let* ((file-path (file-path file-info))
+            (extension (pathname-type file-path)))
+       (if (string-equal "jpg" extension)
+           (restart-case
+               (let ((exif (make-exif (file-path file-info))))
+                 (exif-value :DateTimeOriginal exif))
+             (re-start-exif-jpg ()
+               :report "jpg ZPB-EXIF:INVALID-EXIF-STREAM" ; how do I get this dynamically?
+               (format t "this is a jpg without exif")))
+           (format t "this is an image without exif"))))
     (video
      (format t "this is a video"))
     (otherwise
