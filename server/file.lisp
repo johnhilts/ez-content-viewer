@@ -5,10 +5,10 @@
 
 (defmethod get-content-timestamp ((file-info file-info))
   (case (file-content-type file-info)
-    (:image
      (let ((exif (make-exif (file-path file-info))))
        (exif-value :DateTimeOriginal exif)))
-    (:video
+    (image
+    (video
      (format t "this is a video"))
     (otherwise
      (format t "this is something else"))))
@@ -23,9 +23,9 @@
                    (file (make-instance 'file-info)))
                (populate-info-object file path timestamp content-type))))
       (mapcar #'get-file-info (get-pathnames-by-type wildcards))))
-  (let ((folders (get-content-files-by-type  '("*") :folder))
-        (images (get-content-files-by-type '("*.png" "*.jpg" "*.PNG" "*.JPG") :image))
-        (videos (get-content-files-by-type '("*.mov" "*.mp4") :video))
+  (let ((folders (get-content-files-by-type  '("*") 'folder))
+        (images (get-content-files-by-type '("*.png" "*.jpg" "*.PNG" "*.JPG") 'image))
+        (videos (get-content-files-by-type '("*.mov" "*.mp4") 'video))
         (content (make-instance 'content-info)))
     (populate-info-object content folders images videos)))
 
