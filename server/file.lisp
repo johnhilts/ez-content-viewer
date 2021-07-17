@@ -21,6 +21,14 @@
     (otherwise
      (format t "this is something else"))))
 
+;; this is an example - it needs to be included in an orchestrator / imperative shell type function
+(handler-bind ((ZPB-EXIF:INVALID-EXIF-STREAM
+                (lambda (condition)
+                  (declare (ignore condition))
+                  (invoke-restart 're-start-exif-jpg)))) ;; invoke "emergency" function
+  (let ((jpg-without-exif-example (car (content-images (get-content-files "media/photos"))))))
+  (get-content-timestamp jpg-without-exif-example))
+
 (defun get-content-files (directory)
   (defun get-content-files-by-type (wildcards content-type)
     (flet ((get-pathnames-by-type (wildcards)
