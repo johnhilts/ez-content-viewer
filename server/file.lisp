@@ -26,8 +26,8 @@
                 (lambda (condition)
                   (declare (ignore condition))
                   (invoke-restart 're-start-exif-jpg)))) ;; invoke "emergency" function
-  (let ((jpg-without-exif-example (car (content-images (get-content-files "media/photos"))))))
-  (get-content-timestamp jpg-without-exif-example))
+  (let ((jpg-without-exif-example (car (content-images (get-content-files "media/photos")))))
+    (get-content-timestamp jpg-without-exif-example)))
 
 (defun get-content-files (directory)
   (defun get-content-files-by-type (wildcards content-type)
