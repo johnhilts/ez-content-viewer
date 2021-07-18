@@ -8,7 +8,7 @@
     (image
      (let* ((file-path (file-path file-info))
             (extension (pathname-type file-path)))
-       (if (string-equal "jpg" extension)
+       (if (or (string-equal "jpg" extension) (string-equal "jpeg" extension))
            (restart-case
                (let ((exif (make-exif (file-path file-info))))
                  (exif-value :DateTimeOriginal exif))
