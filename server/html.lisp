@@ -61,7 +61,7 @@
      (:head (:title "EZ Utils / Content Viewer - Version")
             (:link :type "text/css"
                    :rel "stylesheet"
-                   :href "/styles.css"))
+                   :href (format nil "/styles.css?v=~a" (get-version))))
      (:body
       (:div "Version")
       (:div (str (get-version)))))))
