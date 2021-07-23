@@ -22,7 +22,6 @@
             (:title "EZ Content Viewer - File List")
             (:link :type "text/css"
                    :rel "stylesheet"
-                   :href "/styles.css")
             (:script :type "text/javascript"
                      (str (eval (list 'ps (list 'var 'file-list (cons 'array (mapcar #'(lambda (e) `(create ,@e)) file-list))))))
                      (str (jfh-web:define-ps-with-html-macro))
@@ -46,13 +45,14 @@
                               (:div (:a :href "/media/test-19.jpg" "Test 19")))
                         (:div (:img :src "/media/test-17.jpg" :width 200 :height 200))))))))))
 ;)
+                       :href (str (format nil "/styles.css?v=~a" (get-version))))
 
 (define-easy-handler (content-viewer-page :uri "/main") ()
   "HTTP endpoint for content-viewer page"
   (make-content-viewer-page))
 
 (defun get-version ()
-  "0.1")
+  "0.14")
 
 (define-easy-handler (version-page :uri "/version") ()
   (with-html-output-to-string
