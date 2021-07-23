@@ -1,3 +1,4 @@
+/*
 body {
     margin: 0 auto;
     max-width: 50em;
@@ -73,7 +74,7 @@ todo-pre {
 }
 
 button {
-    background-color: #4CAF50; /* Green */
+    background-color: #4CAF50; /* Green * /
     border: none;
     color: white;
     padding: 15px 32px;
@@ -94,6 +95,7 @@ input {
     padding: 5px;
 }
 
+/* Flex styles * /
 .main-container {
     display: flex;
     justify-content: space-around;
@@ -102,4 +104,75 @@ input {
 .file-list {
     display: flex;
     flex-flow: column;
+}
+
+*/
+
+/* following are from canjs blog - https://www.bitovi.com/blog/use-flexbox-to-create-a-sticky-header-and-sidebar-with-flexible-content */
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;   
+    overflow: hidden;  /* makes the body non-scrollable (we will add scrolling to the sidebar and main content containers) */
+    margin: 0px;  /* removes default style */
+    display: flex;  /* enables flex content for its children */
+    box-sizing: border-box;
+    font-family: "Helvetica", "Arial", sans-serif;
+    line-height: 1.5;
+    padding: 1em 2em 1em 2em;
+    background-color: #000;
+    color: #00FF00;
+    
+}
+
+.column {
+    height: 100%;  /* allows both columns to span the full height of the browser window */
+    display: flex;
+    flex-direction: column;  /* places the left and right headers above the bottom content */
+}
+
+.row {
+    width: 100%;  /* allows both columns to span the full height of the browser window */
+    display: flex;
+    flex-direction: row;  /* places the left and right headers above the bottom content */
+}
+
+.column-item {
+    padding: 1em 2em 1em 2em;
+}
+
+#left {
+    flex-shrink: 0;  /* makes sure that content is not cut off in a smaller browser window */
+}
+
+.top-left {
+    flex-shink: 0;
+}
+
+.top-right {
+    flex-shrink: 0;
+    display: inline-flex;
+}
+
+ul {
+    display: inline-flex;
+    list-style: none;
+}
+
+.bottom {
+    flex-grow: 1;  /* ensures that the container will take up the full height of the parent container */
+    overflow-y: auto;  /* adds scroll to this container */
+}
+
+
+a {
+    color: #e81c4f;
+}
+
+
+img {
+    margin: 0px;  /* removes default style */
+    padding: 1em 2em 1em 2em;
 }
