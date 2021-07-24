@@ -52,11 +52,7 @@
 
 (defun make-content-viewer-page-use=js ()
   "generate Content Viewer HTML page"
-  (let* ((init-file-list (make-list 1000 :initial-element '("media/photo/test" . 1)))
-         (index 0)
-         (file-list (mapcar #'(lambda (e)
-                                (incf index)
-                                (cons (car e) index)) init-file-list)))
+  (let ((file-list (content-images (get-file-list))))
     (flet ((invoke-registered-ps-functions ()
              "pull all the registered ps functions from a global plist, then put them into a list"
              (do ((e *registered-ps-functions* (cddr e))
@@ -73,7 +69,7 @@
                        :rel "stylesheet"
                        :href (str (format nil "/styles.css?v=~a" (get-version))))
                 (:script :type "text/javascript"
-                         (str (eval (list 'ps (list 'var 'file-list (cons 'array (mapcar #'(lambda (e) `(create :path ,(format nil "~a~a.jpg" (car e) (cdr e)))) file-list))))))
+                         (str (eval (list 'ps (list 'var 'file-list (cons 'array (mapcar #'(lambda (e) `(create :path ,(format nil "~a" (file-path e)))) file-list))))))
                          (str (jfh-web:define-ps-with-html-macro))
                          (str (share-server-side-constants))
                          ;; (str (client-todo))
