@@ -57,7 +57,7 @@
   "index (cache) the folders"
   (let* ((content-folders (content-folders content-info))
          (folder-count (length content-folders)))
-    (make-array folder-count :element-type 'pathname :initial-contents content-folders)))
+    (make-array folder-count :fill-pointer folder-count :adjustable t :element-type 'pathname :initial-contents content-folders)))
 
 (defparameter *content-root* "./media"
   "root of content media")
