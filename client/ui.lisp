@@ -30,7 +30,9 @@
   ;;                         (get-element-by-id "todo-add-btn")))
   ;; (chain add-button
   ;;        (add-event-listener "click" add-todo false))
-  (render-file-list file-list)
+  (render-file-list folder-list)
+  (render-file-list image-list)
+  (render-file-list video-list)
   )
 
 ;; (define-for-ps render-app-settings ()
@@ -60,18 +62,18 @@
 ;;          (button (onclick . "(filter-todos)") "Filter"))))
 ;;   t)
 
-(define-for-ps render-file-list (file-list)
+(define-for-ps render-file-list (image-list)
   "render html elements for file list"
   (flet ((show-in-preview-pane (file)
            (alert "hi")
            t))
     (let* ((file-list-div (chain document (get-element-by-id "left-bottom")))
            (parent-element file-list-div))
-      (clear-children parent-element)
-      (chain file-list
+      ;; (clear-children parent-element)
+      (chain image-list
              (map
               #'(lambda (file index)
-                  (let ((file-text (+ (@ file path) " Image")))
+                  (let ((file-text (+ (@ file path) " " (@ file content-type))))
                     (jfh-web::with-html-elements
                         (div (class . "column-item")
                              (a (onclick . "(render-preview-pane file)") "(progn file-text)")))
@@ -103,15 +105,25 @@
   "render html elements for file pane"
   (let ((parent-element (chain document (get-element-by-id "right-bottom"))))
     (clear-children parent-element)
-    (let ((file-text (+ (@ file path) " Image"))
+    (let ((file-text (+ (@ file path) " " (@ file content-type)))
           (file-img-style "")) ;; (+ "transform: rotate(" (- 360 270) "deg)")))
-      (jfh-web::with-html-elements
-          (div (class . "column-item")
-               (a
-;;                (onclick . "(show-in-full file)")
-                (img (src . (@ file path)) (style . "(progn file-img-style)") (width . "200") (height . "200"))
-                (span (br " "))
-                "(progn file-text)")))
+      (cond
+        ((equal 'image (@ file content-type)) 
+         (jfh-web::with-html-elements
+             (div (class . "column-item")
+                  (a
+                   ;;                (onclick . "(show-in-full file)")
+                   (img (src . "(@ file path)") (style . "(progn file-img-style)") (width . "200") (height . "200"))
+                   (span (br " "))
+                   "(progn file-text)"))))
+        ((equal 'video (@ file content-type))
+         (jfh-web::with-html-elements
+             (div (class . "column-item")
+                  (a
+                   ;;                (onclick . "(show-in-full file)")
+                   (video (src . "(@ file path)") (width . "200") (height . "200"))
+                   (span (br " "))
+                   "(progn file-text)")))))
       t)))
 
 

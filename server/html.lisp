@@ -52,44 +52,62 @@
 
 (defun make-content-viewer-page-use=js ()
   "generate Content Viewer HTML page"
-  (let ((file-list (content-images (get-file-list))))
-    (flet ((invoke-registered-ps-functions ()
-             "pull all the registered ps functions from a global plist, then put them into a list"
-             (do ((e *registered-ps-functions* (cddr e))
-                  (result ()))
-                 ((null e) result)
-               (push (getf *registered-ps-functions* (car e)) result)))
-           (get-web-path (file-path)
-             (let* ((path (namestring file-path))
-                    (web-path-start (search (subseq *content-root* 1) path))
-                    (web-path (subseq path web-path-start)))
-               web-path)))
-      (with-html-output-to-string
-          (*standard-output* nil :prologue t :indent t)
-        (:html :lang "en"
-               (:head
-                (:meta :charset "utf-8")
-                (:title "EZ Content Viewer - File List")
-                (:link :type "text/css"
-                       :rel "stylesheet"
-                       :href (str (format nil "/styles.css?v=~a" (get-version))))
-                (:script :type "text/javascript"
-                         (str (eval (list 'ps (list 'var 'file-list (cons 'array (mapcar #'(lambda (e) `(create :path ,(get-web-path (file-path e)))) file-list))))))
-                         (str (jfh-web:define-ps-with-html-macro))
-                         (str (share-server-side-constants))
-                         ;; (str (client-todo))
-                         ;; (str (client-app-settings))
-                         (str (client-ui))
-                         (dolist (e (invoke-registered-ps-functions))
-                           (str (funcall e)))))
-               (:body
-                (:div :id "file-list" :class "row"
-                      (:div :id "left" :class "column"
-                            (:div :class "top-left"  "top left")
-                            (:div :class "bottom" :id "left-bottom"))
-                      (:div :id "right" :class "column"
-                            (:div :class "top-right" "top right")
-                            (:div :class "bottom" :id "right-bottom")))))))))
+  (let* ((file-list (get-file-list))
+         (image-list (content-images file-list))
+         (video-list (content-videos file-list))
+         (folder-list (content-folders file-list)))
+    (setf *folders* (index-folders file-list)) ;; this needs to survive across requests
+  "array of indexed folders")
+    (labels ((get-web-path (file-path)
+               (let* ((path (namestring file-path))
+                      (web-path-start (search (subseq *content-root* 1) path)))
+                 (if web-path-start
+                     (subseq path web-path-start)
+                     path))))
+      (flet ((invoke-registered-ps-functions ()
+               "pull all the registered ps functions from a global plist, then put them into a list"
+               (do ((e *registered-ps-functions* (cddr e))
+                    (result ()))
+                   ((null e) result)
+                 (push (getf *registered-ps-functions* (car e)) result)))
+             (to-javascript-array (file-list-name file-list)
+               (eval (list
+                      'ps
+                      (list 'var file-list-name
+                            (cons 'array
+                                  (mapcar #'(lambda (e)
+                                              `(create
+                                                :path ,(get-web-path (file-path e))
+                                                ,(symbol-to-js-string :content-type) ,(symbol-to-js-string (file-content-type e))))
+                                          file-list)))))))
+        (with-html-output-to-string
+            (*standard-output* nil :prologue t :indent t)
+          (:html :lang "en"
+                 (:head
+                  (:meta :charset "utf-8")
+                  (:title "EZ Content Viewer - File List")
+                  (:link :type "text/css"
+                         :rel "stylesheet"
+                         :href (str (format nil "/styles.css?v=~a" (get-version))))
+                  (:script :type "text/javascript"
+                           (str (to-javascript-array 'image-list image-list))
+                           (str (to-javascript-array 'video-list video-list))
+                           (str (to-javascript-array 'folder-list folder-list))
+                           (str (jfh-web:define-ps-with-html-macro))
+                           (str (share-server-side-constants))
+                           ;; (str (client-todo))
+                           ;; (str (client-app-settings))
+                           (str (client-ui))
+                           (dolist (e (invoke-registered-ps-functions))
+                             (str (funcall e)))))
+                 (:body
+                  (:div :id "file-list" :class "row"
+                        (:div :id "left" :class "column"
+                              (:div :class "top-left"  "top left")
+                              (:div :class "bottom" :id "left-bottom"))
+                        (:div :id "right" :class "column"
+                              (:div :class "top-right" "top right")
+                              (:div :class "bottom" :id "right-bottom"))))))))))
 
 (define-easy-handler (content-viewer-page :uri "/main-js") ()
   "HTTP endpoint for content-viewer page"
