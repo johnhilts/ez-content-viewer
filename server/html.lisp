@@ -58,7 +58,12 @@
              (do ((e *registered-ps-functions* (cddr e))
                   (result ()))
                  ((null e) result)
-               (push (getf *registered-ps-functions* (car e)) result))))
+               (push (getf *registered-ps-functions* (car e)) result)))
+           (get-web-path (file-path)
+             (let* ((path (namestring file-path))
+                    (web-path-start (search (subseq *content-root* 1) path))
+                    (web-path (subseq path web-path-start)))
+               web-path)))
       (with-html-output-to-string
           (*standard-output* nil :prologue t :indent t)
         (:html :lang "en"
@@ -69,7 +74,7 @@
                        :rel "stylesheet"
                        :href (str (format nil "/styles.css?v=~a" (get-version))))
                 (:script :type "text/javascript"
-                         (str (eval (list 'ps (list 'var 'file-list (cons 'array (mapcar #'(lambda (e) `(create :path ,(namestring (file-path e)))) file-list))))))
+                         (str (eval (list 'ps (list 'var 'file-list (cons 'array (mapcar #'(lambda (e) `(create :path ,(get-web-path (file-path e)))) file-list))))))
                          (str (jfh-web:define-ps-with-html-macro))
                          (str (share-server-side-constants))
                          ;; (str (client-todo))
