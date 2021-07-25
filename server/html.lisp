@@ -52,12 +52,12 @@
 
 (defun make-content-viewer-page-use=js ()
   "generate Content Viewer HTML page"
-  (let* ((file-list (get-file-list))
+  (let* ((folder-index (parse-integer (or (parameter "fi" *request*) "0")))
+         (file-list (get-file-list (aref *folders* folder-index)))
          (image-list (content-images file-list))
          (video-list (content-videos file-list))
          (folder-list (content-folders file-list)))
     (setf *folders* (index-folders file-list)) ;; this needs to survive across requests
-  "array of indexed folders")
     (labels ((get-web-path (file-path)
                (let* ((path (namestring file-path))
                       (web-path-start (search (subseq *content-root* 1) path)))

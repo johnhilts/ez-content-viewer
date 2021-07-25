@@ -36,21 +36,22 @@
 
 (defun get-content-files (directory)
   "get the content files in a directory"
-  (defun get-content-files-by-type (wildcards content-type)
-    "get files by extension (type)"
-    (flet ((get-pathnames-by-type (wildcards)
-             (remove-if #'null
-                        (mapcan #'(lambda (wildcard) (directory (format nil "~a/~a" directory wildcard))) wildcards)))
-           (get-file-info (path)
-             (let ((timestamp (get-universal-time))
-                   (file (make-instance 'file-info)))
-               (populate-info-object file path timestamp content-type))))
-      (mapcar #'get-file-info (get-pathnames-by-type wildcards))))
-  (let ((folders (get-content-files-by-type  '("*") 'folder))
-        (images (get-content-files-by-type '("*.png" "*.jpg" "*.PNG" "*.JPG") 'image))
-        (videos (get-content-files-by-type '("*.mov" "*.mp4") 'video))
-        (content (make-instance 'content-info)))
-    (populate-info-object content folders images videos)))
+  (let ((directory (if (stringp directory) directory (file-path directory))))
+    (defun get-content-files-by-type (wildcards content-type)
+      "get files by extension (type)"
+      (flet ((get-pathnames-by-type (wildcards)
+               (remove-if #'null
+                          (mapcan #'(lambda (wildcard) (directory (format nil "~a/~a" directory wildcard))) wildcards)))
+             (get-file-info (path)
+               (let ((timestamp (get-universal-time))
+                     (file (make-instance 'file-info)))
+                 (populate-info-object file path timestamp content-type))))
+        (mapcar #'get-file-info (get-pathnames-by-type wildcards))))
+    (let ((folders (get-content-files-by-type  '("*") 'folder))
+          (images (get-content-files-by-type '("*.png" "*.jpg" "*.PNG" "*.JPG") 'image))
+          (videos (get-content-files-by-type '("*.mov" "*.mp4") 'video))
+          (content (make-instance 'content-info)))
+      (populate-info-object content folders images videos))))
 
 (defmethod index-folders ((content-info content-info))
   "index (cache) the folders"
