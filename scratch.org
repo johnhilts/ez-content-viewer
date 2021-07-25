@@ -198,3 +198,13 @@ CONTENT-VIEWER> (let ((exif (make-exif (file-path (caddr (content-images (get-co
     ((=== fileInfo.fileType "text") (renderText))
     (t (renderUnknown))))
 
+* folder navigation
+(cond
+ ((not fi) 'use-root)
+ (t 'use-*folders*[f1]))
+
+** *folders* 
+- initialize on setup
+- add on for each sub-dir, instead of over-write?
+  - can we add to an array??
+    - maybe use a list instead?
