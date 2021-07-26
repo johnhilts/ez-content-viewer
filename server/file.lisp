@@ -53,11 +53,20 @@
           (content (make-instance 'content-info)))
       (populate-info-object content folders images videos))))
 
-(defmethod index-folders ((content-info content-info))
+(defun search-folders (search-path file-info &optional (index 0))
+  "version of search that works with file-info list"
+  (cond
+    ((null file-info)
+     nil)
+    ((equal search-path (file-path (car file-info)))
+     index)
+    (t (search-folders search-path (cdr file-info) (+ 1 index)))))
+
+(defmethod index-folders ((content-info content-info) &optional (folders nil))
   "index (cache) the folders"
-  (let* ((content-folders (content-folders content-info))
-         (folder-count (length content-folders)))
-    (make-array folder-count :fill-pointer folder-count :adjustable t :element-type 'pathname :initial-contents content-folders)))
+  (let ((content-folders (content-folders content-info)))
+     ;; maybe change this from append to intersection?
+    (adjoin *content-root* (append folders content-folders))))
 
 (defparameter *content-root* "./media"
   "root of content media")

@@ -53,11 +53,11 @@
 (defun make-content-viewer-page-use=js ()
   "generate Content Viewer HTML page"
   (let* ((folder-index (parse-integer (or (parameter "fi" *request*) "0")))
-         (file-list (get-file-list (aref *folders* folder-index)))
+         (file-list (get-file-list (nth folder-index *folders*)))
          (image-list (content-images file-list))
          (video-list (content-videos file-list))
          (folder-list (content-folders file-list)))
-    (setf *folders* (index-folders file-list)) ;; this needs to survive across requests
+    (setf *folders* (index-folders file-list *folders*)) ;; this needs to survive across requests
     (labels ((get-web-path (file-path)
                (let* ((path (namestring file-path))
                       (web-path-start (search (subseq *content-root* 1) path)))
@@ -76,9 +76,16 @@
                       (list 'var file-list-name
                             (cons 'array
                                   (mapcar #'(lambda (e)
-                                              `(create
-                                                :path ,(get-web-path (file-path e))
-                                                ,(symbol-to-js-string :content-type) ,(symbol-to-js-string (file-content-type e))))
+                                              (let* ((file-path (file-path e))
+                                                     (file-content-type (file-content-type e))
+                                                     (folder-index (cond
+                                                                     ((and (equal 'folder file-content-type) (equal *content-root* file-path)) 0)
+                                                                     ((equal 'folder file-content-type) (search-folders file-path (cdr *folders*)))
+                                                                     (t -1))))
+                                                `(create
+                                                  :path ,(get-web-path file-path)
+                                                  ,(symbol-to-js-string :content-type) ,(symbol-to-js-string file-content-type)
+                                                  ,(symbol-to-js-string :folder-index) ,folder-index)))
                                           file-list)))))))
         (with-html-output-to-string
             (*standard-output* nil :prologue t :indent t)
@@ -107,7 +114,7 @@
                               (:div :class "bottom" :id "left-bottom"))
                         (:div :id "right" :class "column"
                               (:div :class "top-right" "top right")
-                              (:div :class "bottom" :id "right-bottom"))))))))))
+                              (:div :class "bottom" :id "right-bottom")))))))))))
 
 (define-easy-handler (content-viewer-page :uri "/main-js") ()
   "HTTP endpoint for content-viewer page"

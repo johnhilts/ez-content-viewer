@@ -108,6 +108,8 @@
     (let ((file-text (+ (@ file path) " " (@ file content-type)))
           (file-img-style "")) ;; (+ "transform: rotate(" (- 360 270) "deg)")))
       (cond
+        ((equal 'folder (@ file content-type))
+         (setf (@ location href) (+ "main-js?fi=" (@ file folder-index))))
         ((equal 'image (@ file content-type)) 
          (jfh-web::with-html-elements
              (div (class . "column-item")
