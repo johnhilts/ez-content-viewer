@@ -80,7 +80,7 @@
                                                      (file-content-type (file-content-type e))
                                                      (folder-index (cond
                                                                      ((and (equal 'folder file-content-type) (equal *content-root* file-path)) 0)
-                                                                     ((equal 'folder file-content-type) (search-folders file-path (cdr *folders*)))
+                                                                     ((equal 'folder file-content-type) (+ 1 (search-folders file-path (cdr *folders*))))
                                                                      (t -1))))
                                                 `(create
                                                   :path ,(get-web-path file-path)
