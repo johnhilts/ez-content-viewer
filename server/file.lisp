@@ -62,11 +62,18 @@
      index)
     (t (search-folders search-path (cdr file-info) (+ 1 index)))))
 
+(defmethod pathname= ((file-info1 file-info) (file-info2 file-info))
+  (string-equal
+   (namestring (file-path file-info1))
+   (namestring (file-path file-info2))))
+
 (defmethod index-folders ((content-info content-info) &optional (folders nil))
   "index (cache) the folders"
-  (let ((content-folders (content-folders content-info)))
-     ;; maybe change this from append to intersection?
-    (adjoin *content-root* (append folders content-folders))))
+  (flet ((append-new-items (new old)
+           "Similar to union, but I want to preserve the order of original list's items"
+           (append old (set-difference (union old new :test #'pathname=) old :test #'pathname=))))
+    (let ((content-folders (content-folders content-info)))
+      (adjoin *content-root* (append-new-items content-folders (cdr folders))))))
 
 (defparameter *content-root* "./media"
   "root of content media")
