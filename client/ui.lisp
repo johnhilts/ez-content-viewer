@@ -123,7 +123,8 @@
              (div (class . "column-item")
                   (a
                    ;;                (onclick . "(show-in-full file)")
-                   (video (src . "(@ file path)") (width . "200") (height . "200") "controls")
+                   ;; (video (src . "(@ file path)") (width . "200") (height . "200"))
+                   (href . "(@ file path)")
                    (span (br " "))
                    "(progn file-text)")))))
       t)))

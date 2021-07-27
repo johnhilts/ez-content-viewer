@@ -49,7 +49,7 @@
         (mapcar #'get-file-info (get-pathnames-by-type wildcards))))
     (let ((folders (get-content-files-by-type  '("*") 'folder))
           (images (get-content-files-by-type '("*.png" "*.jpg" "*.PNG" "*.JPG") 'image))
-          (videos (get-content-files-by-type '("*.mov" "*.mp4") 'video))
+          (videos (get-content-files-by-type '("*.mov" "*.mp4" "*.MOV" "*.MP4") 'video))
           (content (make-instance 'content-info)))
       (populate-info-object content folders images videos))))
 
