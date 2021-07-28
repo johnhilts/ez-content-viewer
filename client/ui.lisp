@@ -105,11 +105,13 @@
   "render html elements for file pane"
   (let ((parent-element (chain document (get-element-by-id "right-bottom"))))
     (clear-children parent-element)
-    (let ((file-text (+ (@ file path) " " (@ file content-type)))
-          (file-img-style "")) ;; (+ "transform: rotate(" (- 360 270) "deg)")))
+    (let* ((file-text (+ (@ file path) " " (@ file content-type)))
+          (file-img-style "") ;; (+ "transform: rotate(" (- 360 270) "deg)")))
+          (request-folder-index (chain (@ location search) (match (new (-reg-exp "fi=(\\d)")))))
+          (current-index (if request-folder-index (parse-int (@ request-folder-index 1)) 0)))
       (cond
         ((equal 'folder (@ file content-type))
-         (setf (@ location href) (+ "main-js?fi=" (@ file folder-index))))
+         (setf (@ location href) (+ "main-js?fi=" (@ file folder-index) "&ci=" current-index)))
         ((equal 'image (@ file content-type)) 
          (jfh-web::with-html-elements
              (div (class . "column-item")

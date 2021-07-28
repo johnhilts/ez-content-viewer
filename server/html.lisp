@@ -41,7 +41,7 @@
                       (:div :class "top-left"  "top left")
                       (:div :class "bottom"
                             (dolist (file file-list)
-                              (htm (:div :class "column-item" (:a :href (format nil "~a~a.jpg Test" (car file) (cdr file)) (str (format nil "Test~a.jpg" (cdr file)))))))
+a                              (htm (:div :class "column-item" (:a :href (format nil "~a~a.jpg Test" (car file) (cdr file)) (str (format nil "Test~a.jpg" (cdr file)))))))
                             (:div (:a :href "/media/test-17.jpg" "Test 17"))
                             (:div (:a :href "/media/test-18.jpg" "Test 18"))
                             (:div (:a :href "/media/test-19.jpg" "Test 19"))))
@@ -110,11 +110,16 @@
                  (:body
                   (:div :id "file-list" :class "row"
                         (:div :id "left" :class "column"
-                              (:div :class "top-left"  "top left")
+                              (:div :class "top-left"  "top left"
+                                    (let ((previous-index (parameter "ci" *request*)))
+                                      (when previous-index
+                                        (htm
+                                         (:div
+                                          (:a :href (format nil "/main-js?fi=~a" previous-index) "[ Previous ]"))))))
                               (:div :class "bottom" :id "left-bottom"))
                         (:div :id "right" :class "column"
                               (:div :class "top-right" "top right")
-                              (:div :class "bottom" :id "right-bottom")))))))))))
+                              (:div :class "bottom" :id "right-bottom"))))))))))
 
 (define-easy-handler (content-viewer-page :uri "/main-js") ()
   "HTTP endpoint for content-viewer page"
