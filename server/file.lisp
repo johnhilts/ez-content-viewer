@@ -67,13 +67,24 @@
    (namestring (file-path file-info1))
    (namestring (file-path file-info2))))
 
-(defmethod index-folders ((content-info content-info) &optional (folders nil))
+(defmethod index-folders ((content-info content-info) &optional (folders nil) (folder-index 0))
   "index (cache) the folders"
-  (flet ((append-new-items (new old)
-           "Similar to union, but I want to preserve the order of original list's items"
-           (append old (set-difference (union old new :test #'pathname=) old :test #'pathname=))))
-    (let ((content-folders (content-folders content-info)))
-      (adjoin *content-root* (append-new-items content-folders (cdr folders))))))
+  (labels (
+           (pathname-in-a-list= (file-info1 file-info2)
+             "handle the alist version and call the specialized version of pathname="
+             (pathname=
+              (car file-info1)
+              (car file-info2)))
+           (convert-to-alist (file-info-list)
+             (mapcar #'(lambda (e)
+                         (cons e folder-index))
+                     file-info-list)))
+    (flet ((append-new-items (old new)
+             "Similar to union, but I want to preserve the order of original list's items"
+             (let ((new-alist (convert-to-alist new)))
+               (append old (set-difference (union old new-alist :test #'pathname-in-a-list=) old :test #'pathname-in-a-list=)))))
+      (let ((content-folders (content-folders content-info)))
+        (adjoin (cons *content-root* 0) (append-new-items (cdr folders) content-folders))))))
 
 (defparameter *content-root* "./media"
   "root of content media")

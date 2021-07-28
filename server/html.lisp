@@ -53,11 +53,11 @@ a                              (htm (:div :class "column-item" (:a :href (format
 (defun make-content-viewer-page-use=js ()
   "generate Content Viewer HTML page"
   (let* ((folder-index (parse-integer (or (parameter "fi" *request*) "0")))
-         (file-list (get-file-list (nth folder-index *folders*)))
+         (file-list (get-file-list (car (nth folder-index *folders*))))
          (image-list (content-images file-list))
          (video-list (content-videos file-list))
          (folder-list (content-folders file-list)))
-    (setf *folders* (index-folders file-list *folders*)) ;; this needs to survive across requests
+    (setf *folders* (index-folders file-list *folders* folder-index)) ;; this needs to survive across requests
     (labels ((get-web-path (file-path)
                (let* ((path (namestring file-path))
                       (web-path-start (search (subseq *content-root* 1) path)))
@@ -80,7 +80,7 @@ a                              (htm (:div :class "column-item" (:a :href (format
                                                      (file-content-type (file-content-type e))
                                                      (folder-index (cond
                                                                      ((and (equal 'folder file-content-type) (equal *content-root* file-path)) 0)
-                                                                     ((equal 'folder file-content-type) (+ 1 (search-folders file-path (cdr *folders*))))
+                                                                     ((equal 'folder file-content-type) (+ 1 (search-folders file-path (mapcar #'car (cdr *folders*)))))
                                                                      (t -1))))
                                                 `(create
                                                   :path ,(get-web-path file-path)
