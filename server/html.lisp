@@ -50,14 +50,14 @@ a                              (htm (:div :class "column-item" (:a :href (format
                       (:div :class "bottom"
                             (:img :src "/media/photos/TestImage.JPG" :style (str (format nil "transform: rotate(~ddeg)" (- 360 270))) :width 200 :height 200)))))))))
 
-(defun make-content-viewer-page-use=js ()
+(defun make-content-viewer-page-use-js ()
   "generate Content Viewer HTML page"
   (let* ((folder-index (parse-integer (or (parameter "fi" *request*) "0")))
-         (file-list (get-file-list (car (nth folder-index *folders*))))
+         (file-list (get-file-list (nth folder-index *folders*)))
          (image-list (content-images file-list))
          (video-list (content-videos file-list))
          (folder-list (content-folders file-list)))
-    (setf *folders* (index-folders file-list *folders* folder-index)) ;; this needs to survive across requests
+    (setf *folders* (index-folders file-list *folders*)) ;; this needs to survive across requests
     (labels ((get-web-path (file-path)
                (let* ((path (namestring file-path))
                       (web-path-start (search (subseq *content-root* 1) path)))
@@ -80,7 +80,7 @@ a                              (htm (:div :class "column-item" (:a :href (format
                                                      (file-content-type (file-content-type e))
                                                      (folder-index (cond
                                                                      ((and (equal 'folder file-content-type) (equal *content-root* file-path)) 0)
-                                                                     ((equal 'folder file-content-type) (+ 1 (search-folders file-path (mapcar #'car (cdr *folders*)))))
+                                                                     ((equal 'folder file-content-type) (+ 1 (search-folders file-path (cdr *folders*))))
                                                                      (t -1))))
                                                 `(create
                                                   :path ,(get-web-path file-path)
@@ -111,7 +111,7 @@ a                              (htm (:div :class "column-item" (:a :href (format
                   (:div :id "file-list" :class "row"
                         (:div :id "left" :class "column"
                               (:div :class "top-left"  "top left"
-                                    (let ((previous-index (parameter "ci" *request*)))
+                                    (let ((previous-index (get-previous-folder-index folder-index *folders*)))
                                       (when previous-index
                                         (htm
                                          (:div
@@ -123,7 +123,7 @@ a                              (htm (:div :class "column-item" (:a :href (format
 
 (define-easy-handler (content-viewer-page :uri "/main-js") ()
   "HTTP endpoint for content-viewer page"
-  (make-content-viewer-page-use=js))
+  (make-content-viewer-page-use-js))
 
 (define-easy-handler (content-viewer-page :uri "/main") ()
   "HTTP endpoint for content-viewer page"
