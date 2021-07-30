@@ -208,3 +208,11 @@ CONTENT-VIEWER> (let ((exif (make-exif (file-path (caddr (content-images (get-co
 - add on for each sub-dir, instead of over-write?
   - can we add to an array??
     - maybe use a list instead?
+
+
+* Handle symlinks
+- =get-file-info= is a =mapcar= predicate.
+  - this is where we can get info from each path
+  - [ ] compare (truename) values
+  - [ ] we can add another slot for linked-path - if it exists, that's what we'll use instead of file-path
+  - [ ] hopefully that'll be enough to get the images to display
