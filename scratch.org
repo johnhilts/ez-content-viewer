@@ -214,5 +214,12 @@ CONTENT-VIEWER> (let ((exif (make-exif (file-path (caddr (content-images (get-co
 - =get-file-info= is a =mapcar= predicate.
   - this is where we can get info from each path
   - [ ] compare (truename) values
-  - [ ] we can add another slot for linked-path - if it exists, that's what we'll use instead of file-path
+  - [ ] we can add another slot for linked-path (call it =alias-path=) - if it exists, that's what we'll use instead of file-path
   - [ ] hopefully that'll be enough to get the images to display
+** Notes
+   #+begin_src lisp
+     (let ((pics (nth 2 (directory "/home/jfh/code/lisp/source/web/content-viewer/media/*" :resolve-symlinks nil))))
+       (values (namestring (truename pics)) (namestring pics)))
+     => "/home/jfh/Pictures/"
+        "/home/jfh/code/lisp/source/web/content-viewer/media/pictures/"
+   #+end_src
