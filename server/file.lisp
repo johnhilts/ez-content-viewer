@@ -34,25 +34,6 @@
             (content-images content-files))
       content-files)))
 
-(defun get-content-files (directory)
-  "get the content files in a directory"
-  (let ((directory (if (stringp directory) directory (file-path directory))))
-    (defun get-content-files-by-type (wildcards content-type)
-      "get files by extension (type)"
-      (flet ((get-pathnames-by-type (wildcards)
-               (remove-if #'null
-                          (mapcan #'(lambda (wildcard) (directory (format nil "~a/~a" directory wildcard))) wildcards)))
-             (get-file-info (path)
-               (let ((timestamp (get-universal-time))
-                     (file (make-instance 'file-info)))
-                 (populate-info-object file path timestamp content-type))))
-        (mapcar #'get-file-info (get-pathnames-by-type wildcards))))
-    (let ((folders (get-content-files-by-type  '("*") 'folder))
-          (images (get-content-files-by-type '("*.png" "*.jpg" "*.PNG" "*.JPG") 'image))
-          (videos (get-content-files-by-type '("*.mov" "*.mp4" "*.MOV" "*.MP4") 'video))
-          (content (make-instance 'content-info)))
-      (populate-info-object content folders images videos))))
-
 (defun search-folders (search-path file-info &optional (index 0))
   "version of search that works with file-info list"
   (cond
@@ -62,11 +43,6 @@
      index)
     (t (search-folders search-path (cdr file-info) (+ 1 index)))))
 
-(defmethod pathname= ((file-info1 file-info) (file-info2 file-info))
-  (string-equal
-   (namestring (file-path file-info1))
-   (namestring (file-path file-info2))))
-
 (defun get-previous-folder-index (current-folder-index folders)
   (when (plusp current-folder-index)
     (let* ((current-folder-path (file-path (nth current-folder-index folders)))
@@ -74,17 +50,3 @@
            (parent-folder-end-position (position #\/ current-folder :from-end t :end (- (length current-folder) 1)))
            (previous-folder (truename (subseq current-folder 0 (+ 1 parent-folder-end-position)))))
       (or (search-folders previous-folder (cdr folders)) 0))))
-
-(defmethod index-folders ((content-info content-info) &optional (folders nil))
-  "index (cache) the folders"
-  (flet ((append-new-items (old new)
-           "Similar to union, but I want to preserve the order of original list's items"
-           (append old (set-difference (union old new :test #'pathname=) old :test #'pathname=))))
-    (let ((content-folders (content-folders content-info)))
-      (adjoin *content-root* (append-new-items (cdr folders) content-folders)))))
-
-(defparameter *content-root* "./media"
-  "root of content media")
-
-(defparameter *folders* (index-folders (get-content-files "./media"))
-  "array of indexed folders")

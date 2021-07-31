@@ -125,10 +125,6 @@ a                              (htm (:div :class "column-item" (:a :href (format
   "HTTP endpoint for content-viewer page"
   (make-content-viewer-page-use-js))
 
-(define-easy-handler (content-viewer-page :uri "/main") ()
-  "HTTP endpoint for content-viewer page"
-  (make-content-viewer-page))
-
 (defun get-version ()
   "0.14")
 
