@@ -63,7 +63,16 @@ a                              (htm (:div :class "column-item" (:a :href (format
                       (web-path-start (search (subseq *content-root* 1) path)))
                  (if web-path-start
                      (subseq path web-path-start)
-                     path))))
+                     path)))
+             ;; get parent folder
+             ;; set alias by doing a replace on the folder portion of the path
+             ;; send the alias path to JS!
+             (get-parent-folder (file-path folders)
+               (search (list (truename (directory-namestring file-path))) (mapcar #'file-path folders)))
+             (get-alias-path (file-path folders)
+               (let* ((parent-folder-index (get-parent-folder file-path folders))
+                      (parent-folder (if parent-folder-index (file-alias-path (nth parent-folder-index folders)) (format nil "~a/" (namestring (car *folders*))))))
+                 (format nil "~a~a" parent-folder (file-namestring file-path)))))
       (flet ((invoke-registered-ps-functions ()
                "pull all the registered ps functions from a global plist, then put them into a list"
                (do ((e *registered-ps-functions* (cddr e))
@@ -78,12 +87,13 @@ a                              (htm (:div :class "column-item" (:a :href (format
                                   (mapcar #'(lambda (e)
                                               (let* ((file-path (file-path e))
                                                      (file-content-type (file-content-type e))
+                                                     (alias-path (if (equal 'folder file-content-type) file-path (get-alias-path file-path (cdr *folders*))))
                                                      (folder-index (cond
                                                                      ((and (equal 'folder file-content-type) (equal *content-root* file-path)) 0)
                                                                      ((equal 'folder file-content-type) (+ 1 (search-folders file-path (cdr *folders*))))
                                                                      (t -1))))
                                                 `(create
-                                                  :path ,(get-web-path file-path)
+                                                  :path ,(get-web-path alias-path)
                                                   ,(symbol-to-js-string :content-type) ,(symbol-to-js-string file-content-type)
                                                   ,(symbol-to-js-string :folder-index) ,folder-index)))
                                           file-list)))))))
