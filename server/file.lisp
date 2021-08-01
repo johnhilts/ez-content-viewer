@@ -22,7 +22,9 @@
              (get-file-info (file-path)
                (let* ((timestamp (get-universal-time))
                       (path (truename file-path))
-                      (alias-path (if (not (equal (namestring path) (namestring file-path))) file-path nil))
+                      (alias-path (if (not (equal (namestring path) (namestring file-path)))
+                                      file-path
+                                      nil))
                       (file (make-instance 'file-info)))
                  (populate-info-object file path timestamp content-type alias-path))))
         (mapcar #'get-file-info (get-pathnames-by-type wildcards))))
@@ -31,6 +33,17 @@
           (videos (get-content-files-by-type '("*.mov" "*.mp4" "*.MOV" "*.MP4") 'video))
           (content (make-instance 'content-info)))
       (populate-info-object content folders images videos))))
+
+(defun index-alias-folders (folders)
+  "index (cache) the alias for any folders that have them"
+  (remove-if #'(lambda (e) (null (cdr e)))
+             (mapcar #'(lambda (e) (cons (file-path e) (file-alias-path e)))
+                     (cdr folders))))
+
+(defun get-aias-path (file-path aliased-folders)
+  (let ((aliased-path (find-if #'(lambda (e) (search (namestring (car e)) (namestring file-path))) aliased-folders)))
+    (when aliased-path
+      (string-replace (namestring file-path) (namestring (car aliased-path)) (namestring (cdr aliased-path))))))
 
 (defmethod index-folders ((content-info content-info) &optional (folders nil))
   "index (cache) the folders"
