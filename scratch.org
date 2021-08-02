@@ -72,8 +72,8 @@
           - [X] File type - image or video or text or unknown
           - [ ] Geolocation info
           - [ ] Orientation
-      - [ ] Generate correct type of html per type - <img> or <video> or <a> or <p>
-      - [ ] Associate click handler to display full screen view "SPA style"
+      - [X] Generate correct type of html per type - <img> or <video> or <a> or <p>
+      - [X] Associate click handler to display full screen view "SPA style"
   - [ ] Save list of "favorites"
     - [ ] multiple, named lists
     - [ ] Display the lists
