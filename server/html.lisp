@@ -110,7 +110,7 @@ a                              (htm (:div :class "column-item" (:a :href (format
                            (dolist (e (invoke-registered-ps-functions))
                              (str (funcall e)))))
                  (:body
-                  (:div :id "file-list" :class "row"
+                  (:div :id "file-list" :class "row" :hidden "false"
                         (:div :id "left" :class "column"
                               (:div :class "top-left"  "top left"
                                     (let ((previous-index (get-previous-folder-index folder-index *folders*)))
@@ -121,14 +121,15 @@ a                              (htm (:div :class "column-item" (:a :href (format
                               (:div :class "bottom" :id "left-bottom"))
                         (:div :id "right" :class "column"
                               (:div :class "top-right" "top right")
-                              (:div :class "bottom" :id "right-bottom"))))))))))
+                              (:div :class "bottom" :id "right-bottom")))
+                  (:div :id "full-size-parent" :hidden "true"))))))))
 
 (define-easy-handler (content-viewer-page :uri "/main-js") ()
   "HTTP endpoint for content-viewer page"
   (make-content-viewer-page-use-js))
 
 (defun get-version ()
-  "0.14")
+  "0.16")
 
 (define-easy-handler (version-page :uri "/version") ()
   (with-html-output-to-string

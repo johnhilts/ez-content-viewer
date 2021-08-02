@@ -2,17 +2,17 @@
 
 * Basic idea(s)
 
-  - [ ] The starting folder is /media
+  - [X] The starting folder is /media
     - See Locations below for more info
-  - [ ] List all folders =(directory #p"/home/jfh/code/lisp/source/web/todo/todo-project/*")=
-  - [ ] List all images
+  - [X] List all folders =(directory #p"/home/jfh/code/lisp/source/web/todo/todo-project/*")=
+  - [X] List all images
     #+begin_src lisp
       (let ((wildcards '("*.png" "*.jpg"))
             (result))
         (dolist (wc wildcards result)
           (push (directory (format nil "/home/jfh/code/lisp/source/web/todo/todo-project/~a" wc)) result)))
     #+end_src
-  - [ ] List all videos
+  - [X] List all videos
     #+begin_src lisp
       (let ((wildcards '("*.mov" "*.mp4"))
             (result))
@@ -20,8 +20,8 @@
           (push (directory (format nil "/home/jfh/code/lisp/source/web/todo/todo-project/~a" wc)) result)))
     #+end_src
   - [ ] Use paging (defparameter and/or config)
-  - [ ] Split page into 2 - left for item list, right for images and videos
-  - [ ] each list item is a link to display in the right panel
+  - [X] Split page into 2 - left for item list, right for images and videos
+  - [X] each list item is a link to display in the right panel
   - [ ] the right panel will also have the option to display "full screen" (but do it "spa" style - no new tabs or pages)
     
 
@@ -198,6 +198,7 @@ CONTENT-VIEWER> (let ((exif (make-exif (file-path (caddr (content-images (get-co
     ((=== fileInfo.fileType "text") (renderText))
     (t (renderUnknown))))
 
+
 * folder navigation
 (cond
  ((not fi) 'use-root)
@@ -208,14 +209,14 @@ CONTENT-VIEWER> (let ((exif (make-exif (file-path (caddr (content-images (get-co
 - add on for each sub-dir, instead of over-write?
   - can we add to an array??
     - maybe use a list instead?
-
+      
 
 * Handle symlinks
 - =get-file-info= is a =mapcar= predicate.
   - this is where we can get info from each path
-  - [ ] compare (truename) values
-  - [ ] we can add another slot for linked-path (call it =alias-path=) - if it exists, that's what we'll use instead of file-path
-  - [ ] hopefully that'll be enough to get the images to display
+  - [X] compare (truename) values
+  - [X] we can add another slot for linked-path (call it =alias-path=) - if it exists, that's what we'll use instead of file-path
+  - [X] hopefully that'll be enough to get the images to display
 ** Notes
    #+begin_src lisp
      (let ((pics (nth 2 (directory "/home/jfh/code/lisp/source/web/content-viewer/media/*" :resolve-symlinks nil))))

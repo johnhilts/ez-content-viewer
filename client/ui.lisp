@@ -62,6 +62,24 @@
 ;;          (button (onclick . "(filter-todos)") "Filter"))))
 ;;   t)
 
+(Define-For-ps render-full-size (item-url)
+  (let ((parent-element (chain document (get-element-by-id "full-size-parent")))
+        (file-list-div (chain document (get-element-by-id "file-list"))))
+    (flet ((toggle-full-size-visibility (show-full-size)
+             (setf (@ parent-element hidden) (not show-full-size))
+             ;; (setf (@ file-list-div hidden) show-full-size)
+             (setf (@ file-list-div style) (if show-full-size "display:none;" "display:flex;"))))
+      (let ((file-img-style ""))
+        (toggle-full-size-visibility t)
+        (clear-children parent-element)
+        (jfh-web::with-html-elements
+            (div (id . "full-size-main")
+                 (onclick . "(toggle-full-size-visibility nil)")
+                 (img (src . "(progn item-url)") (width . "100%") (height . "100%") (style . "(progn file-img-style)"))
+                 (span (br " "))
+                 (span "(progn item-url)")))
+        t))))
+
 (define-for-ps render-file-list (image-list)
   "render html elements for file list"
   (flet ((show-in-preview-pane (file)
@@ -89,28 +107,6 @@
                     (jfh-web::with-html-elements
                         (div (class . "column-item")
                              (a (onclick . "(render-preview-pane file)") "(progn file-text)")))
-                    ;; (tr
-                    ;;  (td
-                    ;;   (input
-                    ;;    (id . "(progn todo-checkbox-id)")
-                    ;;    (type . "checkbox")
-                    ;;    (onclick . "(update-todo (progn index) (@ todo id)))")
-                    ;;    (checked . "(@ todo done)")
-                    ;;    (class . "(progn hide-todo-edit-class-name)"))
-                    ;;   (span "  ")
-                    ;;   (label
-                    ;;    (id . "(progn todo-label-id)")
-                    ;;    (for . "(progn todo-checkbox-id)")
-                    ;;    (class . "(progn hide-todo-edit-class-name)")
-                    ;;    (pre
-                    ;;     (style . "(progn pre-style)")
-                    ;;     (class . "(progn hide-todo-edit-class-name)") "(@ todo text)"))
-                    ;;   (a (onclick . "(show-input-for todo t)") (class . "(progn hide-todo-edit-class-name)") "  ...")
-                    ;;   (textarea (id . "(progn todo-text-id)") (hidden . "t") (rows . "5") (cols . "100") (class . "(progn show-todo-edit-class-name)"))
-                    ;;   (span (br (ref . "(progn index)")))
-                    ;;   (button (hidden . "t") (onclick . "(save-input-for todo)") (class . "(progn show-todo-edit-class-name)") "Save")
-                    ;;   (span "  ")
-                    ;;   (button (hidden . "t") (onclick . "(delete-todo todo)") (class . "(progn show-todo-edit-class-name)") "Delete")))
                     t)))))))
 
 (define-for-ps render-preview-pane (file)
@@ -128,7 +124,7 @@
          (jfh-web::with-html-elements
              (div (class . "column-item")
                   (a
-                   ;;                (onclick . "(show-in-full file)")
+                   (onclick . "(render-full-size (@ file path))")
                    (img (src . "(@ file path)") (style . "(progn file-img-style)") (width . "200") (height . "200"))
                    (span (br " "))
                    "(progn file-text)"))))
@@ -136,9 +132,8 @@
          (jfh-web::with-html-elements
              (div (class . "column-item")
                   (a
-                   ;;                (onclick . "(show-in-full file)")
+                   (onclick . "(render-full-size (@ file path))")
                    (video (src . "(@ file path)") (width . "200") (height . "200") (type . "video/mov") (controls . "true") (autoplay . "true"))
-                   ;; (href . "(@ file path)")
                    (span (br " "))
                    "(progn file-text)")))))
       t)))
