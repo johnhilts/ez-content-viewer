@@ -83,8 +83,8 @@
 
 (define-info-class date second minute hour day month year day-of-the-week daylight-p zone) ;; can we do an eval-when or something so it's not necessary to do a global classdef??
 
-(defmethod get-parsed-date ((date date-info))
+(defmethod get-parsed-date ((date date-info) universal-time)
   (multiple-value-bind
         (second minute hour day month year day-of-the-week daylight-p zone)
-      (decode-universal-time (get-universal-time))
+      (decode-universal-time universal-time)
     (populate-info-object date second minute hour day month year day-of-the-week daylight-p zone)))

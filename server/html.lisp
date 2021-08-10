@@ -7,51 +7,6 @@
 
 (defun make-content-viewer-page ()
   "generate Content Viewer HTML page"
-  (let* ((init-file-list (make-list 1000 :initial-element '("media/photo/test" . 1)))
-         (index 0)
-         (file-list (mapcar #'(lambda (e)
-                                (incf index)
-                                (cons (car e) index)) init-file-list)))
-    (flet ((invoke-registered-ps-functions ()
-             "pull all the registered ps functions from a global plist, then put them into a list"
-             (do ((e *registered-ps-functions* (cddr e))
-                  (result ()))
-                 ((null e) result)
-               (push (getf *registered-ps-functions* (car e)) result))))
-      (with-html-output-to-string
-          (*standard-output* nil :prologue t :indent t)
-        (:html :lang "en"
-               (:head
-                (:meta :charset "utf-8")
-                (:title "EZ Content Viewer - File List")
-                (:link :type "text/css"
-                       :rel "stylesheet"
-                       :href (str (format nil "/styles.css?v=~a" (get-version))))
-                (:script :type "text/javascript"
-                         (str (eval (list 'ps (list 'var 'file-list (cons 'array (mapcar #'(lambda (e) `(create :path ,(format nil "~a~a.jpg" (car e) (cdr e)))) file-list))))))
-                         (str (jfh-web:define-ps-with-html-macro))
-                         (str (share-server-side-constants))
-                         ;; (str (client-todo))
-                         ;; (str (client-app-settings))
-                         (str (client-ui))
-                         (dolist (e (invoke-registered-ps-functions))
-                           (str (funcall e)))))
-               (:body
-                (:div :id "left" :class "column"
-                      (:div :class "top-left"  "top left")
-                      (:div :class "bottom"
-                            (dolist (file file-list)
-a                              (htm (:div :class "column-item" (:a :href (format nil "~a~a.jpg Test" (car file) (cdr file)) (str (format nil "Test~a.jpg" (cdr file)))))))
-                            (:div (:a :href "/media/test-17.jpg" "Test 17"))
-                            (:div (:a :href "/media/test-18.jpg" "Test 18"))
-                            (:div (:a :href "/media/test-19.jpg" "Test 19"))))
-                (:div :id "right" :class "column"
-                      (:div :class "top-right" "top right")
-                      (:div :class "bottom"
-                            (:img :src "/media/photos/TestImage.JPG" :style (str (format nil "transform: rotate(~ddeg)" (- 360 270))) :width 200 :height 200)))))))))
-
-(defun make-content-viewer-page-use-js ()
-  "generate Content Viewer HTML page"
   (let* ((folder-index (parse-integer (or (parameter "fi" *request*) "0")))
          (file-list (get-file-list (nth folder-index *folders*)))
          (image-list (content-images file-list))
@@ -79,6 +34,7 @@ a                              (htm (:div :class "column-item" (:a :href (format
                                     (mapcar #'(lambda (e)
                                                 (let* ((file-path (file-path e))
                                                        (file-content-type (file-content-type e))
+                                                       (file-created (file-timestamp e))
                                                        (alias-path (get-aias-path file-path aliased-folder-list))
                                                        (folder-index (cond
                                                                        ((and (equal 'folder file-content-type) (equal *content-root* file-path)) 0)
@@ -87,7 +43,8 @@ a                              (htm (:div :class "column-item" (:a :href (format
                                                   `(create
                                                     :path ,(get-web-path (if alias-path alias-path file-path))
                                                     ,(symbol-to-js-string :content-type) ,(symbol-to-js-string file-content-type)
-                                                    ,(symbol-to-js-string :folder-index) ,folder-index)))
+                                                    ,(symbol-to-js-string :folder-index) ,folder-index
+                                                    :created ,file-created)))
                                             file-list))))))))
         (with-html-output-to-string
             (*standard-output* nil :prologue t :indent t)
@@ -124,9 +81,9 @@ a                              (htm (:div :class "column-item" (:a :href (format
                               (:div :class "bottom" :id "right-bottom")))
                   (:div :id "full-size-parent" :hidden "true"))))))))
 
-(define-easy-handler (content-viewer-page :uri "/main-js") ()
+(define-easy-handler (content-viewer-page :uri "/main") ()
   "HTTP endpoint for content-viewer page"
-  (make-content-viewer-page-use-js))
+  (make-content-viewer-page))
 
 (defun get-version ()
   "0.16")

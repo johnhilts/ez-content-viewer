@@ -165,7 +165,24 @@ CONTENT-VIEWER> (let ((exif (make-exif (file-path (caddr (content-images (get-co
 
 * File dates
 - will need to use something like "osicat" for the videos ...
+#+begin_src lisp
+    (ql:quickload "osicat")
 
+    (let ((stat (osicat-posix:stat #P"./files.md")))
+        (osicat-posix:stat-size stat))  ;; => 10629
+    ;; osicat-posix:stat-ctime
+
+  ;; create-time example (50 years off for some reason?!?)
+(let ((stat (osicat-posix:stat #P"/home/jfh/code/lisp/source/web/content-viewer/media/photos/William-Jackson-Harper.jpg")))
+                  (get-parsed-date (make-instance 'date-info) (osicat-posix:stat-ctime stat)))
+#+end_src
+
+* Deleting files
+  - it's a standard function!
+    #+begin_src lisp
+      (when (probe-file #p"some-dumb-file") ;; note: it looks like probe-file will resolve linked folders into the "real" path - perfect for me!!
+        (delete-file #p"some-file"))
+    #+end_src
 * Test
 ** JSON API
 - URL: https://jsonplaceholder.typicode.com/posts

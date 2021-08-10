@@ -62,7 +62,7 @@
 ;;          (button (onclick . "(filter-todos)") "Filter"))))
 ;;   t)
 
-(Define-For-ps render-full-size (item-url)
+(Define-For-ps render-full-size (item-url created-date)
   (let ((parent-element (chain document (get-element-by-id "full-size-parent")))
         (file-list-div (chain document (get-element-by-id "file-list"))))
     (flet ((toggle-full-size-visibility (show-full-size)
@@ -77,7 +77,9 @@
                  (onclick . "(toggle-full-size-visibility nil)")
                  (img (src . "(progn item-url)") (width . "100%") (height . "100%") (style . "(progn file-img-style)"))
                  (span (br " "))
-                 (span "(progn item-url)")))
+                 (span "(progn item-url)")
+                 (span (br " "))
+                 (span "(progn created-date)")))
         t))))
 
 (define-for-ps render-file-list (image-list)
@@ -114,28 +116,33 @@
   (let ((parent-element (chain document (get-element-by-id "right-bottom"))))
     (clear-children parent-element)
     (let* ((file-text (@ file path))
+           (file-created (@ file created))
            (file-img-style "") ;; (+ "transform: rotate(" (- 360 270) "deg)")))
            (request-folder-index (chain (@ location search) (match (new (-reg-exp "fi=(\\d)")))))
            (current-index (if request-folder-index (parse-int (@ request-folder-index 1)) 0)))
       (cond
         ((equal 'folder (@ file content-type))
-         (setf (@ location href) (+ "main-js?fi=" (@ file folder-index) "&ci=" current-index)))
+         (setf (@ location href) (+ "main?fi=" (@ file folder-index) "&ci=" current-index)))
         ((equal 'image (@ file content-type)) 
          (jfh-web::with-html-elements
              (div (class . "column-item")
                   (a
-                   (onclick . "(render-full-size (@ file path))")
+                   (onclick . "(render-full-size (@ file path) file-created)")
                    (img (src . "(@ file path)") (style . "(progn file-img-style)") (width . "200") (height . "200"))
                    (span (br " "))
-                   "(progn file-text)"))))
+                   "(progn file-text)"
+                    (span (br " "))
+                   "(progn file-created)"))))
         ((equal 'video (@ file content-type))
          (jfh-web::with-html-elements
              (div (class . "column-item")
                   (a
-                   (onclick . "(render-full-size (@ file path))")
+                   (onclick . "(render-full-size (@ file path) file-created)")
                    (video (src . "(@ file path)") (width . "200") (height . "200") (type . "video/mov") (controls . "true") (autoplay . "true"))
                    (span (br " "))
-                   "(progn file-text)")))))
+                   "(progn file-text)"
+                   (span (br " "))
+                   "(progn file-created)")))))
       t)))
 
 

@@ -58,22 +58,28 @@
 
 (defmethod get-content-timestamp ((file-info file-info)) ; maybe convert this to defun and take 2 parameters then return timestamp and geo lat+lng
   "get filestamp for a file"
-  (case (file-content-type file-info)
-    (image
-     (let* ((file-path (file-path file-info))
-            (extension (pathname-type file-path)))
-       (if (or (string-equal "jpg" extension) (string-equal "jpeg" extension))
-           (restart-case
-               (let ((exif (make-exif (file-path file-info))))
-                 (exif-value :DateTimeOriginal exif))
-             (re-start-exif-jpg ()
-               :report "jpg ZPB-EXIF:INVALID-EXIF-STREAM" ; how do I get this dynamically?
-               (format nil "this is a jpg without exif")))
-           (format nil "this is an image without exif"))))
-    (video
-     (format nil "this is a video"))
-    (otherwise
-     (format nil "this is something else"))))
+  (flet ((get-created-date (file-path)
+           (let* ((stat (osicat-posix:stat file-path))
+                  (parsed-date-info (get-parsed-date (make-instance 'date-info) (osicat-posix:stat-mtime stat)))
+                  (adjusted-year (+ 70 (date-year parsed-date-info)))) ;; the posix call is returning dates as 60 years earlier...
+             (format nil "~d/~d/~d ~d:~d"
+                     (date-month parsed-date-info) (date-day parsed-date-info) adjusted-year (date-hour parsed-date-info) (date-minute parsed-date-info)))))
+    (let* ((file-path (file-path file-info))
+           (extension (pathname-type file-path)))
+      (case (file-content-type file-info)
+        (image
+         (if (or (string-equal "jpg" extension) (string-equal "jpeg" extension))
+             (restart-case
+                 (let ((exif (make-exif (file-path file-info))))
+                   (exif-value :DateTimeOriginal exif))
+               (re-start-exif-jpg ()
+                 :report "jpg ZPB-EXIF:INVALID-EXIF-STREAM" ; how do I get this dynamically?
+                 (get-created-date file-path)))
+             (get-created-date file-path)))
+        (video
+         (get-created-date file-path))
+        (otherwise
+         (get-created-date file-path))))))
 
 ;; this is an example - it needs to be included in an orchestrator / imperative shell type function
 (defun get-file-list (&optional (directory *content-root*))
