@@ -40,6 +40,16 @@
              (mapcar #'(lambda (e) (cons (file-path e) (file-alias-path e)))
                      (cdr folders))))
 
+(defun get-physical-path (web-path)
+  (let* ((search-path (subseq *content-root* (position #\/ *content-root*)))
+         (physical-relative-path-start (search search-path web-path)))
+    (when physical-relative-path-start
+      (probe-file (format nil ".~a" web-path)))))
+
+(defun delete-web-path (web-path)
+  (delete-file
+   (get-physical-path web-path)))
+
 (defun get-aias-path (file-path aliased-folders)
   (let ((aliased-path (find-if #'(lambda (e) (search (namestring (car e)) (namestring file-path))) aliased-folders)))
     (when aliased-path

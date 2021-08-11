@@ -74,7 +74,7 @@
                                       (when previous-index
                                         (htm
                                          (:div
-                                          (:a :href (format nil "/main-js?fi=~a" previous-index) "[ Previous ]"))))))
+                                          (:a :href (format nil "/main?fi=~a" previous-index) "[ Previous ]"))))))
                               (:div :class "bottom" :id "left-bottom"))
                         (:div :id "right" :class "column"
                               (:div :class "top-right" "top right")
@@ -86,7 +86,7 @@
   (make-content-viewer-page))
 
 (defun get-version ()
-  "0.16")
+  "0.18")
 
 (define-easy-handler (version-page :uri "/version") ()
   (with-html-output-to-string

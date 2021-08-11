@@ -62,6 +62,12 @@
 ;;          (button (onclick . "(filter-todos)") "Filter"))))
 ;;   t)
 
+(define-for-ps delete-file-ui (file-url)
+  (when (confirm "Are you sure you want to delete this?")
+    (delete-file-by-url file-url))
+  ;; "re-draw" page
+  t)
+
 (Define-For-ps render-full-size (item-url created-date)
   (let ((parent-element (chain document (get-element-by-id "full-size-parent")))
         (file-list-div (chain document (get-element-by-id "file-list"))))
@@ -79,7 +85,9 @@
                  (span (br " "))
                  (span "(progn item-url)")
                  (span (br " "))
-                 (span "(progn created-date)")))
+                 (span "(progn created-date)")
+                 (span (br " ") (br " "))
+                 (button (onclick . "(delete-file-ui item-url)") "Delete")))
         t))))
 
 (define-for-ps render-file-list (image-list)
@@ -131,8 +139,10 @@
                    (img (src . "(@ file path)") (style . "(progn file-img-style)") (width . "200") (height . "200"))
                    (span (br " "))
                    "(progn file-text)"
-                    (span (br " "))
-                   "(progn file-created)"))))
+                   (span (br " "))
+                   "(progn file-created)")
+                  (span (br " ") (br " "))
+                  (button (onclick . "(delete-file-ui (@ file path))") "Delete"))))
         ((equal 'video (@ file content-type))
          (jfh-web::with-html-elements
              (div (class . "column-item")
@@ -142,7 +152,9 @@
                    (span (br " "))
                    "(progn file-text)"
                    (span (br " "))
-                   "(progn file-created)")))))
+                   "(progn file-created)"
+                   (span (br " ") (br " "))
+                   (button (onclick . "(delete-file-ui (@ file path))") "Delete"))))))
       t)))
 
 

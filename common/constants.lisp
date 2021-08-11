@@ -3,7 +3,7 @@
 (defparameter *users-root-folder-path* "./users")
 (defparameter *user-index* nil)
 
-;; (defvar *todo-api-endpoint*  "/todo-data")
+(defvar *file-api-endpoint*  "/file-data")
 ;; (defvar *app-settings-api-endpoint*  "/app-settings-data")
 ;; (defvar *app-settings-file-path* "./app-settings-list.sexp")
 ;; (defvar *todo-file-path* "./todo-list.sexp")
