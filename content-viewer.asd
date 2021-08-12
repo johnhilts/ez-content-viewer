@@ -17,7 +17,7 @@
   :license  "MIT"
   :version "0.0.1"
   :serial t
-  :depends-on (#:cl-who #:hunchentoot #:parenscript #:cl-json #:swank #:drakma #:zpb-exif #:jfh-web)
+  :depends-on (#:cl-who #:hunchentoot #:parenscript #:cl-json #:swank #:drakma #:zpb-exif #:osicat #:jfh-web)
   :components ((:file "package")
                (:file "common/constants")
                (:file "server/swank")
