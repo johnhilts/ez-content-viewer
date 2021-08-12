@@ -69,8 +69,8 @@
 (defmethod get-content-timestamp ((file-info file-info)) ; maybe convert this to defun and take 2 parameters then return timestamp and geo lat+lng
   "get filestamp for a file"
   (flet ((get-created-date (file-path)
-           (let* ((stat (osicat-posix:stat file-path))
-                  (parsed-date-info (get-parsed-date (make-instance 'date-info) (osicat-posix:stat-mtime stat)))
+           (let* ((stat (sb-posix:lstat file-path))
+                  (parsed-date-info (get-parsed-date (make-instance 'date-info) (sb-posix:stat-mtime stat)))
                   (adjusted-year (+ 70 (date-year parsed-date-info)))) ;; the posix call is returning dates as 60 years earlier...
              (format nil "~d/~d/~d ~d:~d"
                      (date-month parsed-date-info) (date-day parsed-date-info) adjusted-year (date-hour parsed-date-info) (date-minute parsed-date-info)))))
