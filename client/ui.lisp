@@ -62,19 +62,28 @@
 ;;          (button (onclick . "(filter-todos)") "Filter"))))
 ;;   t)
 
-(define-for-ps delete-file-ui (file-url)
-  (when (confirm "Are you sure you want to delete this?")
-    (delete-file-by-url file-url))
-  ;; "re-draw" page
-  t)
+(define-for-ps delete-file-ui (file-url &optional do-after-delete)
+  (if (confirm "Are you sure you want to delete this?")
+      (progn
+        (delete-file-by-url file-url)
+        (if do-after-delete
+            (funcall do-after-delete)) 
+        t)
+      nil))
 
-(Define-For-ps render-full-size (item-url created-date)
+(define-For-ps render-full-size (item-url created-date &optional do-after-delete)
   (let ((parent-element (chain document (get-element-by-id "full-size-parent")))
         (file-list-div (chain document (get-element-by-id "file-list"))))
-    (flet ((toggle-full-size-visibility (show-full-size)
-             (setf (@ parent-element hidden) (not show-full-size))
-             ;; (setf (@ file-list-div hidden) show-full-size)
-             (setf (@ file-list-div style) (if show-full-size "display:none;" "display:flex;"))))
+    (labels ((toggle-full-size-visibility (show-full-size)
+               (setf (@ parent-element hidden) (not show-full-size))
+               (setf (@ file-list-div style) (if show-full-size "display:none;" "display:flex;")))
+             (delete-file-from-full-size-view (item-url)
+               (if (delete-file-ui item-url)
+                   (progn
+                     (delete-file-by-url item-url)
+                     (toggle-full-size-visibility nil)
+                     (if do-after-delete (funcall do-after-delete)))
+                   t)))
       (let ((file-img-style ""))
         (toggle-full-size-visibility t)
         (clear-children parent-element)
@@ -87,7 +96,7 @@
                  (span (br " "))
                  (span "(progn created-date)")
                  (span (br " ") (br " "))
-                 (button (onclick . "(delete-file-ui item-url)") "Delete")))
+                 (button (onclick . "(delete-file-from-full-size-view item-url)") "Delete")))
         t))))
 
 (define-for-ps render-file-list (image-list)
@@ -100,9 +109,9 @@
                  (file-content-type (@ file content-type))
                  (file-text (cond
                               ((equal 'image file-content-type)
-                               "(i)")
+                               "(I)")
                               ((equal 'video file-content-type)
-                               "(v)")
+                               "(V)")
                               (t ""))))
              (if (equal 'folder file-content-type)
                  (+ "[ " file-path " ]")
@@ -113,16 +122,21 @@
       (chain image-list
              (map
               #'(lambda (file index)
-                  (let ((file-text (format-file-text file)))
+                  (let ((file-text (format-file-text file))
+                        (item-id (+ "item-" (chain index (to-string)))))
                     (jfh-web::with-html-elements
                         (div (class . "column-item")
-                             (a (onclick . "(render-preview-pane file)") "(progn file-text)")))
+                             (a
+                              (id . "(progn item-id)")
+                              (onclick . "(render-preview-pane file item-id)")
+                              "(progn file-text)")))
                     t)))))))
 
-(define-for-ps render-preview-pane (file)
+(define-for-ps render-preview-pane (file item-id)
   "render html elements for file pane"
-  (let ((parent-element (chain document (get-element-by-id "right-bottom"))))
-    (clear-children parent-element)
+  (let* ((parent-element (chain document (get-element-by-id "right-bottom")))
+         (clear-children-closure #'(lambda () (clear-children parent-element))))
+    (funcall clear-children-closure)
     (let* ((file-text (@ file path))
            (file-created (@ file created))
            (file-img-style "") ;; (+ "transform: rotate(" (- 360 270) "deg)")))
@@ -131,18 +145,22 @@
       (cond
         ((equal 'folder (@ file content-type))
          (setf (@ location href) (+ "main?fi=" (@ file folder-index) "&ci=" current-index)))
-        ((equal 'image (@ file content-type)) 
-         (jfh-web::with-html-elements
-             (div (class . "column-item")
-                  (a
-                   (onclick . "(render-full-size (@ file path) file-created)")
-                   (img (src . "(@ file path)") (style . "(progn file-img-style)") (width . "200") (height . "200"))
-                   (span (br " "))
-                   "(progn file-text)"
-                   (span (br " "))
-                   "(progn file-created)")
-                  (span (br " ") (br " "))
-                  (button (onclick . "(delete-file-ui (@ file path))") "Delete"))))
+        ((equal 'image (@ file content-type))
+         (let ((delete-file-closure #'(lambda ()
+                                        (let ((item-element (chain document (get-element-by-id item-id))))
+                                          (setf (@ item-element style) "text-decoration: line-through;color:gray;")
+                                          (funcall clear-children-closure)))))
+           (jfh-web::with-html-elements
+               (div (class . "column-item")
+                    (a
+                     (onclick . "(render-full-size (@ file path) file-created delete-file-closure)")
+                     (img (src . "(@ file path)") (style . "(progn file-img-style)") (width . "200") (height . "200"))
+                     (span (br " "))
+                     "(progn file-text)"
+                     (span (br " "))
+                     "(progn file-created)")
+                    (span (br " ") (br " "))
+                    (button (onclick . "(delete-file-ui (@ file path) delete-file-closure)") "Delete")))))
         ((equal 'video (@ file content-type))
          (jfh-web::with-html-elements
              (div (class . "column-item")
