@@ -176,20 +176,20 @@
                          (span (br " "))
                          "(progn file-created)")
                         (span (br " ") (br " "))
-                        (button (onclick . "(delete-file-ui (@ file path) delete-file-closure)") "Delete")))))
+                        (button (onclick . "(delete-file-ui (@ file path) delete-file-closure)") "Delete")))
+               (set-timeout set-image-dimensions 300)))
             ((equal 'video (@ file content-type))
              (jfh-web::with-html-elements
                  (div (class . "column-item")
                       (a
-                       (onclick . "(render-full-size (@ file path) file-created)")
-                       (video (id . "(progn element-id)") (src . "(@ file path)") (width . "200") (height . "200") (type . "video/mov") (controls . "true") (autoplay . "true"))
+                       ;; (onclick . "(render-full-size (@ file path) file-created)")
+                       (video (id . "(progn element-id)") (src . "(@ file path)") (width . "600") (height . "400") (type . "video/mov") (controls . "true") (autoplay . "true"))
                        (span (br " "))
                        "(progn file-text)"
                        (span (br " "))
                        "(progn file-created)"
                        (span (br " ") (br " "))
                        (button (onclick . "(delete-file-ui (@ file path))") "Delete"))))))
-          (set-timeout set-image-dimensions 100)
           t)))))
 
 

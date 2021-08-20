@@ -76,20 +76,14 @@
                      (date-month parsed-date-info) (date-day parsed-date-info) adjusted-year (date-hour parsed-date-info) (date-minute parsed-date-info)))))
     (let* ((file-path (file-path file-info))
            (extension (pathname-type file-path)))
-      (case (file-content-type file-info)
-        (image
-         (if (or (string-equal "jpg" extension) (string-equal "jpeg" extension))
-             (restart-case
-                 (let ((exif (make-exif (file-path file-info))))
-                   (exif-value :DateTimeOriginal exif))
-               (re-start-exif-jpg ()
-                 :report "jpg ZPB-EXIF:INVALID-EXIF-STREAM" ; how do I get this dynamically?
-                 (get-created-date file-path)))
-             (get-created-date file-path)))
-        (video
-         (get-created-date file-path))
-        (otherwise
-         (get-created-date file-path))))))
+      (if (or (string-equal "jpg" extension) (string-equal "jpeg" extension))
+          (restart-case
+              (let ((exif (make-exif (file-path file-info))))
+                (exif-value :DateTimeOriginal exif))
+            (re-start-exif-jpg ()
+              :report "jpg ZPB-EXIF:INVALID-EXIF-STREAM" ; how do I get this dynamically?
+              (get-created-date file-path)))
+          (get-created-date file-path)))))
 
 ;; this is an example - it needs to be included in an orchestrator / imperative shell type function
 (defun get-file-list (&optional (directory *content-root*))
@@ -97,11 +91,12 @@
                   (lambda (condition)
                     (declare (ignore condition))
                     (invoke-restart 're-start-exif-jpg)))) ;; invoke "emergency" function
-    (let ((content-files (get-content-files directory)))
-      (mapc #'(lambda (e)
-                (setf (file-timestamp e) (get-content-timestamp e)))
-            (content-images content-files))
-      content-files)))
+    (flet ((process-file (file)
+             (setf (file-timestamp file) (get-content-timestamp file))))
+      (let ((content-files (get-content-files directory)))
+        (mapc #'process-file (content-images content-files))
+        (mapc #'process-file (content-videos content-files))
+        content-files))))
 
 (defun search-folders (search-path file-info &optional (index 0))
   "version of search that works with file-info list"
