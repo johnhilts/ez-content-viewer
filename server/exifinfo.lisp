@@ -3,6 +3,10 @@
 ;; Written by Kevin Layer, updated to work on SBCL by Jason Dunsmore
 ;; (originally worked on ACL only).
 ;;
+;; Change log (John Hilts)
+;; - Tweaked to build (sbcl, linux)
+;; - Added conditions, to allow for better control over error handling
+;;
 ;; This code is in the public domain.  You may do with it what you
 ;; want.
 ;;
@@ -234,7 +238,7 @@
 	      ((equalp (subseq data 8 10)
 			    #(#.(char-code #\M) #.(char-code #\M)))
 	       :motorola)
-	      (error "~a: invalid Exif alignment marker." file)))
+	      (t (error "~a: invalid Exif alignment marker." file))))
   
   (when (or (not (= #x2a (get16u data 10)))
 	    (not (= #x08 (get32u data 12))))
@@ -370,7 +374,7 @@
      (let ((num (get32s data offset))
 	   (den (get32s data (+ offset 4))))
        (if (= 0 den)
-	   (0)
+	   0
 	 (float (/ num den)))))
 ;;;; Never used, in my experience:
 ;;;    (7 ;; undefined
