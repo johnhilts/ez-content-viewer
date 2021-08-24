@@ -35,6 +35,8 @@
                                                 (let* ((file-path (file-path e))
                                                        (file-content-type (file-content-type e))
                                                        (file-created (file-timestamp e))
+                                                       (image-length (file-image-length e))
+                                                       (image-width (file-image-width e))
                                                        (alias-path (get-aias-path file-path aliased-folder-list))
                                                        (folder-index (cond
                                                                        ((and (equal 'folder file-content-type) (equal *content-root* file-path)) 0)
@@ -44,7 +46,9 @@
                                                     :path ,(get-web-path (if alias-path alias-path file-path))
                                                     ,(symbol-to-js-string :content-type) ,(symbol-to-js-string file-content-type)
                                                     ,(symbol-to-js-string :folder-index) ,folder-index
-                                                    :created ,file-created)))
+                                                    :created ,file-created
+                                                    ,(symbol-to-js-string :image-length) ,image-length
+                                                    ,(symbol-to-js-string :image-width) ,image-width)))
                                             file-list))))))))
         (with-html-output-to-string
             (*standard-output* nil :prologue t :indent t)

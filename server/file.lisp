@@ -1,6 +1,6 @@
 (in-package #:content-viewer)
 
-(define-info-class file path timestamp content-type alias-path)
+(define-info-class file path timestamp content-type alias-path image-length image-width)
 (define-info-class content folders images videos) ;; note: I can't inline this - it will break compilation if I don't do this on the top level
 
 (defparameter *content-root* "./media"
@@ -25,8 +25,10 @@
                       (alias-path (if (not (equal (namestring path) (namestring file-path)))
                                       file-path
                                       nil))
+                      (image-length 400)
+                      (image-width 600)
                       (file (make-instance 'file-info)))
-                 (populate-info-object file path timestamp content-type alias-path))))
+                 (populate-info-object file path timestamp content-type alias-path image-length image-width))))
         (mapcar #'get-file-info (get-pathnames-by-type wildcards))))
     (let ((folders (get-content-files-by-type  '("*") 'folder))
           (images (get-content-files-by-type '("*.png" "*.jpg" "*.PNG" "*.JPG") 'image))
@@ -66,7 +68,20 @@
 (defparameter *folders* (index-folders (get-content-files "./media"))
   "array of indexed folders")
 
-(defmethod get-content-timestamp ((file-info file-info)) ; maybe convert this to defun and take 2 parameters then return timestamp and geo lat+lng
+(defmethod get-content-image-dimensions ((file-info file-info) exif-by-file) ; maybe convert this to defun and take 2 parameters then return timestamp and geo lat+lng
+  "get image dimensions for a jpg"
+  (let* ((file-path (file-path file-info))
+         (extension (pathname-type file-path)))
+    (if (or (string-equal "jpg" extension) (string-equal "jpeg" extension))
+        (restart-case
+            (let ((exif (funcall exif-by-file (file-path file-info))))
+              (values (getf exif :image-length) (getf exif :image-width)))
+          (re-start-exif-jpg ()
+            :report "jpg ZPB-EXIF:INVALID-EXIF-STREAM" ; how do I get this dynamically?
+            (values nil nil)))
+        (values nil nil))))
+
+(defmethod get-content-timestamp ((file-info file-info) exif-by-file) ; maybe convert this to defun and take 2 parameters then return timestamp and geo lat+lng
   "get filestamp for a file"
   (flet ((get-created-date (file-path)
            (let* ((stat (sb-posix:lstat file-path))
@@ -78,12 +93,22 @@
            (extension (pathname-type file-path)))
       (if (or (string-equal "jpg" extension) (string-equal "jpeg" extension))
           (restart-case
-              (let ((exif (make-exif (file-path file-info))))
-                (exif-value :DateTimeOriginal exif))
+              (let ((exif (funcall exif-by-file (file-path file-info))))
+                (getf exif :date))
             (re-start-exif-jpg ()
               :report "jpg ZPB-EXIF:INVALID-EXIF-STREAM" ; how do I get this dynamically?
               (get-created-date file-path)))
           (get-created-date file-path)))))
+
+(defun parse-file-for-exif (file-path)
+  "use parse-exif-info and make-exif to get exif info
+Examples: 
+(let ((parsed-exif-info (parse-exif-data file-path)))
+  (getf parsed-exif-info :date)
+  (let ((exif (make-exif file-path)))
+    (exif-value :DateTimeOriginal exif)))"
+  ;; todo - if/when I get gps values, use (VALUES ...)
+  (parse-exif-data file-path))
 
 ;; this is an example - it needs to be included in an orchestrator / imperative shell type function
 (defun get-file-list (&optional (directory *content-root*))
@@ -92,7 +117,12 @@
                     (declare (ignore condition))
                     (invoke-restart 're-start-exif-jpg)))) ;; invoke "emergency" function
     (flet ((process-file (file)
-             (setf (file-timestamp file) (get-content-timestamp file))))
+             (let ((exif-by-file (memoize #'(lambda (file-path) (parse-file-for-exif file-path)))))
+               (multiple-value-bind (image-length image-width)
+                   (get-content-image-dimensions file exif-by-file)
+                 (setf (file-timestamp file) (get-content-timestamp file exif-by-file)
+                       (file-image-length file) image-length
+                       (file-image-width file) image-width)))))
       (let ((content-files (get-content-files directory)))
         (mapc #'process-file (content-images content-files))
         (mapc #'process-file (content-videos content-files))

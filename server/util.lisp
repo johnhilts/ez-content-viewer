@@ -130,3 +130,12 @@ key points:
               (format nil "~5,'0d" (random (- (expt 10 5) 1)))
               (subseq (reverse date-based-random-number) 0 7)
               (format nil "~5,'0d" (random (- (expt 10 5) 1)))))))
+
+(defun memoize (fn)
+  (let ((cache (make-hash-table :test #'equal)))
+    #'(lambda (&rest args)
+        (multiple-value-bind (val win) (gethash args cache)
+          (if win
+              val
+              (setf (gethash args cache)
+                    (apply fn args)))))))
