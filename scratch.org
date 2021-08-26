@@ -22,7 +22,13 @@
   - [ ] Use paging (defparameter and/or config)
   - [X] Split page into 2 - left for item list, right for images and videos
   - [X] each list item is a link to display in the right panel
-  - [ ] the right panel will also have the option to display "full screen" (but do it "spa" style - no new tabs or pages)
+  - [X] the right panel will also have the option to display "full screen" (but do it "spa" style - no new tabs or pages)
+  - [X] can orientation be used to better set dimensions on photos?
+    - looks like 6 is portrait and 3 is landscape
+  - [ ] Indicate "current" item
+  - [ ] put a glyph for folder | image | video
+  - [ ] GPS / location name
+  - [ ] top left and right ...
     
 
 * Linking
