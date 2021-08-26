@@ -1,6 +1,6 @@
 (in-package #:content-viewer)
 
-(define-info-class file path timestamp content-type alias-path image-length image-width)
+(define-info-class file path timestamp content-type alias-path image-length image-width image-orientation)
 (define-info-class content folders images videos) ;; note: I can't inline this - it will break compilation if I don't do this on the top level
 
 (defparameter *content-root* "./media"
@@ -27,8 +27,9 @@
                                       nil))
                       (image-length 400)
                       (image-width 600)
+                      (image-orientation +orientation-rotation-minus-90+)
                       (file (make-instance 'file-info)))
-                 (populate-info-object file path timestamp content-type alias-path image-length image-width))))
+                 (populate-info-object file path timestamp content-type alias-path image-length image-width image-orientation))))
         (mapcar #'get-file-info (get-pathnames-by-type wildcards))))
     (let ((folders (get-content-files-by-type  '("*") 'folder))
           (images (get-content-files-by-type '("*.png" "*.jpg" "*.PNG" "*.JPG") 'image))
@@ -75,7 +76,7 @@
     (if (or (string-equal "jpg" extension) (string-equal "jpeg" extension))
         (restart-case
             (let ((exif (funcall exif-by-file (file-path file-info))))
-              (values (getf exif :image-length) (getf exif :image-width)))
+              (values (getf exif :image-length) (getf exif :image-width) (getf exif :orientation)))
           (re-start-exif-jpg ()
             :report "jpg ZPB-EXIF:INVALID-EXIF-STREAM" ; how do I get this dynamically?
             (values nil nil)))
@@ -118,11 +119,12 @@ Examples:
                     (invoke-restart 're-start-exif-jpg)))) ;; invoke "emergency" function
     (flet ((process-file (file)
              (let ((exif-by-file (memoize #'(lambda (file-path) (parse-file-for-exif file-path)))))
-               (multiple-value-bind (image-length image-width)
+               (multiple-value-bind (image-length image-width image-orientation)
                    (get-content-image-dimensions file exif-by-file)
                  (setf (file-timestamp file) (get-content-timestamp file exif-by-file)
                        (file-image-length file) image-length
-                       (file-image-width file) image-width)))))
+                       (file-image-width file) image-width
+                       (file-image-orientation file) image-orientation)))))
       (let ((content-files (get-content-files directory)))
         (mapc #'process-file (content-images content-files))
         (mapc #'process-file (content-videos content-files))

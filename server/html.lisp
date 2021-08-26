@@ -37,6 +37,7 @@
                                                        (file-created (file-timestamp e))
                                                        (image-length (file-image-length e))
                                                        (image-width (file-image-width e))
+                                                       (image-orientation (file-image-orientation e))
                                                        (alias-path (get-aias-path file-path aliased-folder-list))
                                                        (folder-index (cond
                                                                        ((and (equal 'folder file-content-type) (equal *content-root* file-path)) 0)
@@ -48,7 +49,8 @@
                                                     ,(symbol-to-js-string :folder-index) ,folder-index
                                                     :created ,file-created
                                                     ,(symbol-to-js-string :image-length) ,image-length
-                                                    ,(symbol-to-js-string :image-width) ,image-width)))
+                                                    ,(symbol-to-js-string :image-width) ,image-width
+                                                    :orientation ,image-orientation)))
                                             file-list))))))))
         (with-html-output-to-string
             (*standard-output* nil :prologue t :indent t)

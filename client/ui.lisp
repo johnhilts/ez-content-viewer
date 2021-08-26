@@ -134,8 +134,8 @@
 
 (define-for-ps render-preview-pane (file item-id)
   "render html elements for file pane"
-  (labels ((get-file-dimensions (height width)
-             (let* ((basic-dimension 400)
+  (labels ((get-file-dimensions (height width is-landscape)
+             (let* ((basic-dimension (if is-landscape 600 400))
                     (dimension-info
                      (if (> height width)
                          (create :dimension (* basic-dimension (/ width height)) :max 'height)
@@ -160,9 +160,20 @@
                                           (let ((item-element (chain document (get-element-by-id item-id))))
                                             (setf (@ item-element style) "text-decoration: line-through;color:gray;")
                                             (funcall clear-children-closure))))
-                  (file-dimensions (if (and (@ file image-length) (@ file image-width)) (get-file-dimensions (@ file image-length) (@ file image-width))))
-                  (image-height (if (@ file image-length) (@ file-dimensions height)))
-                  (image-width (if (@ file image-width) (@ file-dimensions width))))
+                  (is-landscape (not (= *orientation-rotation-minus-90* (@ file orientation))))
+                  (file-dimensions
+                   (if (and (@ file image-length) (@ file image-width))
+                       (get-file-dimensions (@ file image-length) (@ file image-width) is-landscape)))
+                  (image-height
+                   (if (@ file image-length)
+                       (if (= *orientation-rotation-minus-90* (@ file orientation))
+                           (@ file-dimensions height)
+                           (@ file-dimensions width))))
+                  (image-width
+                   (if (@ file image-width)
+                       (if (= *orientation-rotation-minus-90* (@ file orientation))
+                           (@ file-dimensions width)
+                           (@ file-dimensions height)))))
              (jfh-web::with-html-elements
                  (div (class . "column-item")
                       (a

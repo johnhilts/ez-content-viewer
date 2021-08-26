@@ -11,3 +11,7 @@
 
 ;; (defvar *recipe-api-endpoint*  "/recipe-data")
 ;; (defvar *recipe-file-path* "./recipe-list.sexp")
+
+;; note: apparently defconstant not supported by parenscrpt
+(defvar *orientation-rotation-minus-90* 6
+  "orientation based on exif info")
