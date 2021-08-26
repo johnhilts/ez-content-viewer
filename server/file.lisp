@@ -27,7 +27,7 @@
                                       nil))
                       (image-length 400)
                       (image-width 600)
-                      (image-orientation +orientation-rotation-minus-90+)
+                      (image-orientation *orientation-rotation-minus-90*)
                       (file (make-instance 'file-info)))
                  (populate-info-object file path timestamp content-type alias-path image-length image-width image-orientation))))
         (mapcar #'get-file-info (get-pathnames-by-type wildcards))))
