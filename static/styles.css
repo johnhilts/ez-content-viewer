@@ -143,6 +143,10 @@ body {
     padding: 1em 2em 1em 2em;
 }
 
+.column-item-selected {
+    background:red;padding: 0.5em 0.5em 0.5em 0.5em;color:black;
+}
+
 #left {
     flex-shrink: 0;  /* makes sure that content is not cut off in a smaller browser window */
 }

@@ -142,61 +142,69 @@
                          (create :dimension (* basic-dimension (/ height width)) :max 'width))))
                (create
                 :height (if (equal (@ dimension-info :max) 'height) basic-dimension (@ dimension-info :dimension))
-                :width (if (equal (@ dimension-info :max) 'width)  basic-dimension (@ dimension-info :dimension))))))
-    (let* ((parent-element (chain document (get-element-by-id "right-bottom")))
-           (clear-children-closure #'(lambda () (clear-children parent-element))))
-      (funcall clear-children-closure)
-      (let* ((file-text (@ file path))
-             (file-created (@ file created))
-             (file-img-style "") ;; (+ "transform: rotate(" (- 360 270) "deg)")))
-             (request-folder-index (chain (@ location search) (match (new (-reg-exp "fi=(\\d)")))))
-             (current-index (if request-folder-index (parse-int (@ request-folder-index 1)) 0)))
-        (cond
-          ((equal 'folder (@ file content-type))
-           (setf (@ location href) (+ "main?fi=" (@ file folder-index) "&ci=" current-index)))
-          ((equal 'image (@ file content-type))
-           (let* ((element-id (+ "file-preview" item-id (random 10000000)))
-                 (delete-file-closure #'(lambda ()
-                                          (let ((item-element (chain document (get-element-by-id item-id))))
-                                            (setf (@ item-element style) "text-decoration: line-through;color:gray;")
-                                            (funcall clear-children-closure))))
-                  (is-landscape (not (= *orientation-rotation-minus-90* (@ file orientation))))
-                  (file-dimensions
-                   (if (and (@ file image-length) (@ file image-width))
-                       (get-file-dimensions (@ file image-length) (@ file image-width) is-landscape)))
-                  (image-height
-                   (if (@ file image-length)
-                       (if (= *orientation-rotation-minus-90* (@ file orientation))
-                           (@ file-dimensions height)
-                           (@ file-dimensions width))))
-                  (image-width
-                   (if (@ file image-width)
-                       (if (= *orientation-rotation-minus-90* (@ file orientation))
-                           (@ file-dimensions width)
-                           (@ file-dimensions height)))))
+                :width (if (equal (@ dimension-info :max) 'width)  basic-dimension (@ dimension-info :dimension)))))
+           (clear-all-selected ()
+             "typically there should only be 1 selected at a time, but this will select and clear all that have been styled as selected"
+             (chain (chain document (query-Selector-All "a.column-item-selected")) (for-each #'(lambda (e) (setf (@ e class-name) ""))))))
+    (flet ((set-current-element ()
+             (let ((selected-element (chain document (get-element-by-id item-id))))
+               (clear-all-selected)
+               (setf (@ selected-element class-name) "column-item-selected"))))
+      (let* ((parent-element (chain document (get-element-by-id "right-bottom")))
+             (clear-children-closure #'(lambda () (clear-children parent-element))))
+        (funcall clear-children-closure)
+        (set-current-element)
+        (let* ((file-text (@ file path))
+               (file-created (@ file created))
+               (file-img-style "") ;; (+ "transform: rotate(" (- 360 270) "deg)")))
+               (request-folder-index (chain (@ location search) (match (new (-reg-exp "fi=(\\d)")))))
+               (current-index (if request-folder-index (parse-int (@ request-folder-index 1)) 0)))
+          (cond
+            ((equal 'folder (@ file content-type))
+             (setf (@ location href) (+ "main?fi=" (@ file folder-index) "&ci=" current-index)))
+            ((equal 'image (@ file content-type))
+             (let* ((element-id (+ "file-preview" item-id (random 10000000)))
+                    (delete-file-closure #'(lambda ()
+                                             (let ((item-element (chain document (get-element-by-id item-id))))
+                                               (setf (@ item-element style) "text-decoration: line-through;color:gray;")
+                                               (funcall clear-children-closure))))
+                    (is-landscape (not (= *orientation-rotation-minus-90* (@ file orientation))))
+                    (file-dimensions
+                     (if (and (@ file image-length) (@ file image-width))
+                         (get-file-dimensions (@ file image-length) (@ file image-width) is-landscape)))
+                    (image-height
+                     (if (@ file image-length)
+                         (if (= *orientation-rotation-minus-90* (@ file orientation))
+                             (@ file-dimensions height)
+                             (@ file-dimensions width))))
+                    (image-width
+                     (if (@ file image-width)
+                         (if (= *orientation-rotation-minus-90* (@ file orientation))
+                             (@ file-dimensions width)
+                             (@ file-dimensions height)))))
+               (jfh-web::with-html-elements
+                   (div (class . "column-item")
+                        (a
+                         (href . "(@ file path)")
+                         ;; (onclick . "(render-full-size (@ file path) file-created delete-file-closure)")
+                         (img (src . "(@ file path)") (width . "(or image-height 600)") (height . "(or image-width 400)") (style . "(progn file-img-style)"))
+                         (span (br " "))
+                         "(progn file-text)"
+                         (span (br " "))
+                         "(progn file-created)")
+                        (span (br " ") (br " "))
+                        (button (onclick . "(delete-file-ui (@ file path) delete-file-closure)") "Delete")))))
+            ((equal 'video (@ file content-type))
              (jfh-web::with-html-elements
                  (div (class . "column-item")
                       (a
-                       (onclick . "(render-full-size (@ file path) file-created delete-file-closure)")
-                       (img (src . "(@ file path)") (width . "(or image-height 600)") (height . "(or image-width 400)") (style . "(progn file-img-style)"))
+                       (video (id . "(progn element-id)") (src . "(@ file path)") (width . "600") (height . "400") (type . "video/mov") (controls . "true") (autoplay . "true"))
                        (span (br " "))
                        "(progn file-text)"
                        (span (br " "))
-                       "(progn file-created)")
-                      (span (br " ") (br " "))
-                      (button (onclick . "(delete-file-ui (@ file path) delete-file-closure)") "Delete")))))
-          ((equal 'video (@ file content-type))
-           (jfh-web::with-html-elements
-               (div (class . "column-item")
-                    (a
-                     ;; (onclick . "(render-full-size (@ file path) file-created)")
-                     (video (id . "(progn element-id)") (src . "(@ file path)") (width . "600") (height . "400") (type . "video/mov") (controls . "true") (autoplay . "true"))
-                     (span (br " "))
-                     "(progn file-text)"
-                     (span (br " "))
-                     "(progn file-created)"
-                     (span (br " ") (br " "))
-                     (button (onclick . "(delete-file-ui (@ file path))") "Delete"))))))
-        t))))
+                       "(progn file-created)"
+                       (span (br " ") (br " "))
+                       (button (onclick . "(delete-file-ui (@ file path))") "Delete"))))))
+          t)))))
 
 
