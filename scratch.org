@@ -27,6 +27,7 @@
     - looks like 6 is portrait and 3 is landscape
   - [X] Indicate "current" item
   - [ ] put a glyph for folder | image | video
+    - 📷🎥🗃  
   - [ ] user defined lists
     - [ ] have a button with a + sign
     - [ ] allow for entry of new list name, or selection from existing list (how?)
