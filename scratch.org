@@ -25,14 +25,18 @@
   - [X] the right panel will also have the option to display "full screen" (but do it "spa" style - no new tabs or pages)
   - [X] can orientation be used to better set dimensions on photos?
     - looks like 6 is portrait and 3 is landscape
+  - [X] Indicate "current" item
+  - [ ] put a glyph for folder | image | video
   - [ ] user defined lists
     - [ ] have a button with a + sign
     - [ ] allow for entry of new list name, or selection from existing list (how?)
       - we could make a div appear next to or under the button and that's where there will be a select and an input
-  - [ ] Indicate "current" item
-  - [ ] put a glyph for folder | image | video
-  - [ ] GPS / location name
   - [ ] top left and right ...
+    - [ ] home link (top left)
+    - [ ] link to user defined lists (top right)
+      - [ ] Should display links the same way when clicking on a folder
+      - [ ] "previous" should link back to the user-defined list
+  - [ ] GPS / location name
     
 
 * Linking
