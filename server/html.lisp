@@ -67,7 +67,7 @@
                            (str (to-javascript-array 'folder-list folder-list))
                            (str (jfh-web:define-ps-with-html-macro))
                            (str (share-server-side-constants))
-                           ;; (str (client-todo))
+                           (str (client-favorite))
                            ;; (str (client-app-settings))
                            (str (client-ui))
                            (dolist (e (invoke-registered-ps-functions))

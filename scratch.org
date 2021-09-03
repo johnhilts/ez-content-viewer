@@ -26,9 +26,18 @@
   - [X] can orientation be used to better set dimensions on photos?
     - looks like 6 is portrait and 3 is landscape
   - [X] Indicate "current" item
-  - [ ] put a glyph for folder | image | video
+  - [X] put a glyph for folder | image | video
     - 📷🎥🗃  
   - [ ] user defined lists
+    - [ ] Use this for json interop:
+      #+begin_src lisp
+        ;; get the files for ID #456
+        (assoc :files (assoc 456 (cl-json:decode-json-from-string
+                                  "[
+                        {\"id\": 123, \"name\": \"John\", \"files\": [\"img1\", \"img2\", \"img3\"]},
+                        {\"id\": 456, \"name\": \"Masami\", \"files\": [\"img1\", \"img2\", \"img3\"]}
+                ]") :test #'(lambda (x y) (and (equal :id (car y) ) (= x (cdr y))))))
+      #+end_src
     - [ ] have a button with a + sign
     - [ ] allow for entry of new list name, or selection from existing list (how?)
       - we could make a div appear next to or under the button and that's where there will be a select and an input

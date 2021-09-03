@@ -15,9 +15,9 @@
 
     (share-server-side-constants)))
 
-(define-for-ps get-next-index (todo-list)
-  "calculate next index for todo list"
-  (let ((id-list (chain todo-list (map #'(lambda (todo) (@ todo id)))))
+(define-for-ps get-next-index (favorite-list)
+  "calculate next index for favorite list"
+  (let ((id-list (chain favorite-list (map #'(lambda (favorite) (@ favorite id)))))
         (max-fn (@ -Math max)))
     (if (length id-list)
         (+ 1 (chain max-fn (apply null id-list)))

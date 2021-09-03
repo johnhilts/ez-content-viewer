@@ -72,9 +72,9 @@ key points:
       ((concat-plists (plists)
          (cond
            ((= 1 (length plists))
-            (encode-plist-to-json-as-string (car plists)))
+            (json:encode-json-plist-to-string (car plists)))
            (t (concatenate 'string
-                           (encode-plist-to-json-as-string (car plists))
+                           (json:encode-json-plist-to-string (car plists))
                            ", "
                            (concat-plists (cdr plists)))))))
 
