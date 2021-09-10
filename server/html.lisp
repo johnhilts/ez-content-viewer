@@ -9,7 +9,7 @@
   "generate Content Viewer HTML page"
   (let* ((folder-index (parse-integer (or (parameter "fi" *request*) "0")))
          (file-list (get-file-list (nth folder-index *folders*)))
-         (image-list (content-images file-list))
+         (image-list (remove-if #'(lambda (e)  (file-signaled-error e)) (content-images file-list)))
          (video-list (content-videos file-list))
          (folder-list (content-folders file-list)))
     (setf *folders* (index-folders file-list *folders*)) ;; this needs to survive across requests

@@ -1,6 +1,6 @@
 (in-package #:content-viewer)
 
-(define-info-class file path timestamp content-type alias-path image-length image-width image-orientation)
+(define-info-class file path timestamp content-type alias-path image-length image-width image-orientation signaled-error)
 (define-info-class content folders images videos) ;; note: I can't inline this - it will break compilation if I don't do this on the top level
 
 (defparameter *content-root* "./media"
@@ -28,8 +28,9 @@
                       (image-length 400)
                       (image-width 600)
                       (image-orientation *orientation-rotation-minus-90*)
+                      (signaled-error nil)
                       (file (make-instance 'file-info)))
-                 (populate-info-object file path timestamp content-type alias-path image-length image-width image-orientation))))
+                 (populate-info-object file path timestamp content-type alias-path image-length image-width image-orientation signaled-error))))
         (mapcar #'get-file-info (get-pathnames-by-type wildcards))))
     (let ((folders (get-content-files-by-type  '("*") 'folder))
           (images (get-content-files-by-type '("*.png" "*.jpg" "*.PNG" "*.JPG") 'image))
@@ -79,8 +80,12 @@
               (values (getf exif :image-length) (getf exif :image-width) (getf exif :orientation)))
           (re-start-exif-jpg ()
             :report "jpg ZPB-EXIF:INVALID-EXIF-STREAM" ; how do I get this dynamically?
-            (values nil nil)))
-        (values nil nil))))
+            (values nil nil nil))
+          (re-start-jpg ()
+            :report "jpg ZPB-EXIF:INVALID-JPEG-STREAM" ; how do I get this dynamically?
+            (setf (file-signaled-error file-info) t)
+            (values nil nil nil)))
+        (values nil nil nil))))
 
 (defmethod get-content-timestamp ((file-info file-info) exif-by-file) ; maybe convert this to defun and take 2 parameters then return timestamp and geo lat+lng
   "get filestamp for a file"
@@ -98,6 +103,10 @@
                 (getf exif :date))
             (re-start-exif-jpg ()
               :report "jpg ZPB-EXIF:INVALID-EXIF-STREAM" ; how do I get this dynamically?
+              (get-created-date file-path))
+            (re-start-jpg ()
+              :report "jpg ZPB-EXIF:INVALID-JPEG-STREAM" ; how do I get this dynamically?
+              (setf (file-signaled-error file-info) t)
               (get-created-date file-path)))
           (get-created-date file-path)))))
 
@@ -116,7 +125,11 @@ Examples:
   (handler-bind ((ZPB-EXIF:INVALID-EXIF-STREAM
                   (lambda (condition)
                     (declare (ignore condition))
-                    (invoke-restart 're-start-exif-jpg)))) ;; invoke "emergency" function
+                    (invoke-restart 're-start-exif-jpg)))
+                 (ZPB-EXIF:INVALID-JPEG-STREAM
+                  (lambda (condition)
+                    (declare (ignore condition))
+                    (invoke-restart 're-start-jpg)))) ;; invoke "emergency" function
     (flet ((process-file (file)
              (let ((exif-by-file (memoize #'(lambda (file-path) (parse-file-for-exif file-path)))))
                (multiple-value-bind (image-length image-width image-orientation)
