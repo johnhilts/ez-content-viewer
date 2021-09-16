@@ -204,3 +204,38 @@ button {
     // display: inline-block;
     font-size: 16px;
 }
+
+#overlay {
+    position: fixed;
+    display: none;
+    width: 50%;
+    height: 50%;
+    /* top: 0; */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin-left: 25%;
+    background-color: rgba(10,10,10,10);
+    z-index: 2;
+    cursor: pointer;
+}
+
+#h2{
+/*    position: absolute;
+    top: 25%;
+    left: 50%;*/
+    font-size: 25px;
+    color: red;
+    transform: translate(-50%,-50%);
+    -ms-transform: translate(-50%,-50%);
+}
+
+#text{
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    font-size: 16px;
+    color: red;
+    transform: translate(-50%,-50%);
+    -ms-transform: translate(-50%,-50%);
+}

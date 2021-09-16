@@ -5,9 +5,9 @@
   (ps
     (defvar favorite-list ([]))))
 
-(define-for-ps send-new-favorite-item-to-server (favorite-item)
+(define-for-ps send-new-favorite-item-to-server (favorite-item call-back)
   "save new favorite on server"
-  (send-to-server *favorite-api-endpoint* "POST" favorite-item))
+  (send-to-server *favorite-api-endpoint* "POST" favorite-item call-back))
 
 (define-for-ps send-updated-favorite-item-to-server (favorite-item)
   "save updated favorite on server"
@@ -39,14 +39,17 @@
   
 (define-for-ps add-new-favorite-entry (existing-favorites favorite-id file-path)
   "add new favorite entry for existing favorite"
-  (let ((favorite-item (find-favorite-by-id existing-favorites favorite-id)))
-    (chain (@ favorite-item files) (push file-path)))
+  (flet ((set-null-to-empty-array ()
+           (setf (@ favorite-item files) (or (@ favorite-item files) ([])))))
+    (let ((favorite-item (find-favorite-by-id existing-favorites favorite-id)))
+      (set-null-to-empty-array)
+      (chain (@ favorite-item files) (push file-path))))
   t)
 
-(define-for-ps add-favorite-item (evt)
+(define-for-ps add-favorite-item (file-path evt)
   "add favorite item on client and server"
   (chain evt (prevent-default))
-  (let* ((favorite-input (chain document (get-element-by-id "favorite-content")))
+  (let* ((favorite-input (chain document (get-element-by-id "favorite-search")))
          (favorite-text (chain favorite-input value)))
     (with-callback
         (get-favorite-list-from-server)
@@ -54,7 +57,9 @@
         (chain favorite-list (push favorite-item))
         ;; HIDE FAVORITE INPUT (clear-field favorite)
         ;; (render-favorite-list favorite-list)
-        (send-new-favorite-item-to-server favorite-item))))
+        (with-callback
+            (send-new-favorite-item-to-server favorite-item)
+          (add-favorite-entry (@ favorite-item id) file-path)))))
   t)
 
 (define-for-ps add-favorite-entry (favorite-id file-path)

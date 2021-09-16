@@ -92,7 +92,7 @@
   (make-content-viewer-page))
 
 (defun get-version ()
-  "0.19")
+  "0.24")
 
 (define-easy-handler (version-page :uri "/version") ()
   (with-html-output-to-string

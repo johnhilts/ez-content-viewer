@@ -41,6 +41,74 @@
     - [ ] have a button with a + sign
     - [ ] allow for entry of new list name, or selection from existing list (how?)
       - we could make a div appear next to or under the button and that's where there will be a select and an input
+      - [ ] replace <select> with <div height="??"> hopefully it scrolls ... put list of <a>s inside it...
+    - Some markup
+      #+begin_src html
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+              #overlay {
+              position: fixed;
+              display: none;
+              width: 50%;
+              height: 75%;
+              /* top: 0; */
+              left: 0;
+              right: 0;
+              bottom: 0;
+              margin-left: 25%;
+              background-color: rgba(0,0,0,0.5);
+              z-index: 2;
+              cursor: pointer;
+              }
+
+              #text{
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              font-size: 25px;
+              color: white;
+              transform: translate(-50%,-50%);
+              -ms-transform: translate(-50%,-50%);
+              }
+            </style>
+          </head>
+          <body>
+
+            <div id="overlay">
+              <div id="text">
+                <p><a onclick="off()">CLOSE</a></p>
+                <p>Overlay Text</p>
+                <input placeholder="search" />
+                <select>
+                  <option>Result 1</option>
+                  <option>Result 2</option>
+                  <option>Result 3</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="padding:20px">
+              <h2>Overlay with Text</h2>
+              <button onclick="on()">Turn on overlay effect</button>
+            </div>
+
+            <script>
+              function on() {
+              document.getElementById("overlay").style.display = "block";
+              }
+
+              function off() {
+              document.getElementById("overlay").style.display = "none";
+              }
+            </script>
+
+          </body>
+        </html>
+      #+end_src
+        
   - [ ] top left and right ...
     - [ ] home link (top left)
     - [ ] link to user defined lists (top right)
