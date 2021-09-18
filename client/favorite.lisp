@@ -46,9 +46,8 @@
       (chain (@ favorite-item files) (push file-path))))
   t)
 
-(define-for-ps add-favorite-item (file-path evt)
+(define-for-ps add-favorite-item (file-path)
   "add favorite item on client and server"
-  (chain evt (prevent-default))
   (let* ((favorite-input (chain document (get-element-by-id "favorite-search")))
          (favorite-text (chain favorite-input value)))
     (with-callback
@@ -64,7 +63,6 @@
 
 (define-for-ps add-favorite-entry (favorite-id file-path)
   "add favorite entry on client and server"
-  ;; (chain evt (prevent-default))
   (with-callback
       (get-favorite-list-from-server)
     (let ((favorite-item (find-favorite-by-id favorite-list favorite-id)))
