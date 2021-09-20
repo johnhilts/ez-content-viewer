@@ -99,12 +99,9 @@
                  (button (onclick . "(delete-file-from-full-size-view item-url)") "Delete")))
         t))))
 
-(define-for-ps render-file-list (image-list)
+(define-for-ps render-file-list (file-list)
   "render html elements for file list"
-  (flet ((show-in-preview-pane (file)
-           (alert "hi")
-           t)
-         (format-file-text (file)
+  (flet ((format-file-text (file)
            (let* ((file-path (@ file path))
                  (file-content-type (@ file content-type))
                  (file-text (cond
@@ -119,7 +116,7 @@
     (let* ((file-list-div (chain document (get-element-by-id "left-bottom")))
            (parent-element file-list-div))
       ;; (clear-children parent-element)
-      (chain image-list
+      (chain file-list
              (map
               #'(lambda (file index)
                   (let ((file-text (format-file-text file))
