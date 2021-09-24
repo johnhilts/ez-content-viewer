@@ -30,6 +30,7 @@
   ;;                         (get-element-by-id "todo-add-btn")))
   ;; (chain add-button
   ;;        (add-event-listener "click" add-todo false))
+  (render-favorites-link)
   (render-file-list folder-list)
   (render-file-list image-list)
   (render-file-list video-list)
@@ -71,6 +72,19 @@
         t)
       nil))
 
+(define-For-ps render-favorites-link ()
+  (flet ((prepare-for-favorite-list ()
+           "clears out the file list - this might not even be necessary..."
+           (let* ((file-list-div (chain document (get-element-by-id "left-bottom")))
+                  (preview-div (chain document (get-element-by-id "right-bottom"))))
+             (clear-children file-list-div)
+             (clear-children preview-div)
+             (render-file-list favorite-name-list))))
+    (let ((parent-element (chain document (get-element-by-id "top-right"))))
+      (jfh-web::with-html-elements
+          (span (a (onclick . "(prepare-for-favorite-list)") "Favorites")))))
+  t)
+
 (define-For-ps render-full-size (item-url created-date &optional do-after-delete)
   (let ((parent-element (chain document (get-element-by-id "full-size-parent")))
         (file-list-div (chain document (get-element-by-id "file-list"))))
@@ -103,29 +117,34 @@
   "render html elements for file list"
   (flet ((format-file-text (file)
            (let* ((file-path (@ file path))
-                 (file-content-type (@ file content-type))
-                 (file-text (cond
-                              ((equal 'image file-content-type)
-                               "📷")
-                              ((equal 'video file-content-type)
-                               "🎥")
-                              (t ""))))
-             (if (equal 'folder file-content-type)
-                 (+ "[ " file-path " ] 🗃 ")
-                 (+ file-path " " file-text)))))
+                  (file-content-type (@ file content-type))
+                  (file-text (cond
+                               ((equal 'image file-content-type)
+                                "📷")
+                               ((equal 'video file-content-type)
+                                "🎥")
+                               (t ""))))
+             (cond
+               ((equal 'folder file-content-type) (+ "[ " file-path " ] 🗃 "))
+               ((equal 'favorite file-content-type) (+ "[ " file-path " ] ❤"))
+               (t (+ file-path " " file-text))))))
     (let* ((file-list-div (chain document (get-element-by-id "left-bottom")))
            (parent-element file-list-div))
       ;; (clear-children parent-element)
       (chain file-list
              (map
               #'(lambda (file index)
-                  (let ((file-text (format-file-text file))
-                        (item-id (+ "item-" (chain index (to-string)))))
+                  (let* ((file-text (format-file-text file))
+                        (item-id (+ "item-" (chain index (to-string))))
+                        (onclick-handler #'(lambda ()
+                                             (if (equal 'favorite (@ file content-type))
+                                                 (render-file-list (get-favorite-file-list)) ; we can only get the paths, so let's do a full render, not the preview from a favorites link
+                                                 (render-preview-pane file item-id)))))
                     (jfh-web::with-html-elements
                         (div (class . "column-item")
                              (a
                               (id . "(progn item-id)")
-                              (onclick . "(render-preview-pane file item-id)")
+                              (onclick . "(onclick-handler)")
                               "(progn file-text)")))
                     t)))))))
 

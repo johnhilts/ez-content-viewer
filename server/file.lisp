@@ -54,7 +54,7 @@
   (delete-file
    (get-physical-path web-path)))
 
-(defun get-aias-path (file-path aliased-folders)
+(defun get-alias-path (file-path aliased-folders)
   (let ((aliased-path (find-if #'(lambda (e) (search (namestring (car e)) (namestring file-path))) aliased-folders)))
     (when aliased-path
       (string-replace (namestring file-path) (namestring (car aliased-path)) (namestring (cdr aliased-path))))))
@@ -159,3 +159,31 @@ Examples:
            (parent-folder-end-position (position #\/ current-folder :from-end t :end (- (length current-folder) 1)))
            (previous-folder (truename (subseq current-folder 0 (+ 1 parent-folder-end-position)))))
       (or (search-folders previous-folder (cdr folders)) 0))))
+
+(defmethod create-javascript-object ((item file-info) aliased-folder-list)
+  "create javascript object to be added to a list of files (by type of folder, image, or video)"  
+  (labels ((get-web-path (file-path)
+             (let* ((path (namestring file-path))
+                    (web-path-start (search (subseq *content-root* 1) path)))
+               (if web-path-start
+                   (subseq path web-path-start)
+                   path))))
+    (let* ((file-path (file-path item))
+           (file-content-type (file-content-type item))
+           (file-created (file-timestamp item))
+           (image-length (file-image-length item))
+           (image-width (file-image-width item))
+           (image-orientation (file-image-orientation item))
+           (alias-path (get-alias-path file-path aliased-folder-list))
+           (folder-index (cond
+                           ((and (equal 'folder file-content-type) (equal *content-root* file-path)) 0)
+                           ((equal 'folder file-content-type) (+ 1 (search-folders file-path (cdr *folders*))))
+                           (t -1))))
+      `(create
+        :path ,(get-web-path (if alias-path alias-path file-path))
+        ,(symbol-to-js-string :content-type) ,(symbol-to-js-string file-content-type)
+        ,(symbol-to-js-string :folder-index) ,folder-index
+        :created ,file-created
+        ,(symbol-to-js-string :image-length) ,image-length
+        ,(symbol-to-js-string :image-width) ,image-width
+        :orientation ,image-orientation))))

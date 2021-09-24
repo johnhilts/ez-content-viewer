@@ -60,3 +60,21 @@
              (updated-favorites (splice-and-remove-item-in-list existing-favorites deleted-item-position)))
         (write-complete-file *favorite-file-path* updated-favorites)
         (json:encode-json-to-string (list delete-id))))))
+
+(define-info-class favorite path content-type)
+
+(defun get-favorite-name-list ()
+  (mapcar #'(lambda (e)
+              (let ((path (getf e :name))
+                    (content-type 'favorite)
+                    (favorite (make-instance 'favorite-info))) 
+                (populate-info-object favorite path content-type)))
+          (fetch-or-create-favorites)))
+
+(defmethod create-javascript-object ((item favorite-info) ignored-param)
+  "create javascript object to be added to a list of favorite categories"
+  (let* ((favorite-path (favorite-path item))
+         (favorite-content-type (favorite-content-type item)))
+    `(create
+      :path ,favorite-path
+      ,(symbol-to-js-string :content-type) ,(symbol-to-js-string favorite-content-type))))
