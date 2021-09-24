@@ -98,6 +98,7 @@
                      (toggle-full-size-visibility nil)
                      (if do-after-delete (funcall do-after-delete)))
                    t)))
+      
       (let ((file-img-style ""))
         (toggle-full-size-visibility t)
         (clear-children parent-element)
@@ -112,6 +113,18 @@
                  (span (br " ") (br " "))
                  (button (onclick . "(delete-file-from-full-size-view item-url)") "Delete")))
         t))))
+
+(define-for-ps get-favorite-file-list (selected-favorite)
+  (chain (aref (chain (chain favorite-list (filter
+                        #'(lambda (favorite)
+                            (equal (@ selected-favorite path) (@ favorite name)))))
+         (map
+          #'(lambda (favorite)
+              (@ favorite files)))) 0)
+         (map
+          #'(lambda (file)
+              (create "path" file "contentType" 'image))))
+  )
 
 (define-for-ps render-file-list (file-list)
   "render html elements for file list"
@@ -130,7 +143,6 @@
                (t (+ file-path " " file-text))))))
     (let* ((file-list-div (chain document (get-element-by-id "left-bottom")))
            (parent-element file-list-div))
-      ;; (clear-children parent-element)
       (chain file-list
              (map
               #'(lambda (file index)
@@ -138,7 +150,9 @@
                         (item-id (+ "item-" (chain index (to-string))))
                         (onclick-handler #'(lambda ()
                                              (if (equal 'favorite (@ file content-type))
-                                                 (render-file-list (get-favorite-file-list)) ; we can only get the paths, so let's do a full render, not the preview from a favorites link
+                                                 (progn
+                                                   (clear-children parent-element)
+                                                   (render-file-list (get-favorite-file-list file)))
                                                  (render-preview-pane file item-id)))))
                     (jfh-web::with-html-elements
                         (div (class . "column-item")

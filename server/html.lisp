@@ -51,7 +51,9 @@
                (:body
                 (:div :id "file-list" :class "row" :hidden "false"
                       (:div :id "left" :class "column"
-                            (:div :class "top-left"  "top left"
+                            (:div :class "top-left"
+                                  (:div
+                                   (:a :href "/main" "Home"))
                                   (let ((previous-index (get-previous-folder-index folder-index *folders*)))
                                     (when previous-index
                                       (htm
