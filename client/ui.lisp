@@ -115,16 +115,14 @@
         t))))
 
 (define-for-ps get-favorite-file-list (selected-favorite)
-  (chain (aref (chain (chain favorite-list (filter
-                        #'(lambda (favorite)
-                            (equal (@ selected-favorite path) (@ favorite name)))))
-         (map
-          #'(lambda (favorite)
-              (@ favorite files)))) 0)
-         (map
-          #'(lambda (file)
-              (create "path" file "contentType" 'image))))
-  )
+  (labels
+      ((favorite-to-file (file) (create "path" file "contentType" 'image))
+       (favorite-files (favorite) (@ favorite files))
+       (favorite-by-name (favorite) (equal (@ selected-favorite path) (@ favorite name))))
+    (let* ((favorite-by-name (chain favorite-list (filter #'favorite-by-name)))
+           (favorite-files (aref (chain favorite-by-name (map #'favorite-files)) 0))
+           (favorite-as-files (chain favorite-files (map #'favorite-to-file))))
+      favorite-as-files)))
 
 (define-for-ps render-file-list (file-list)
   "render html elements for file list"
