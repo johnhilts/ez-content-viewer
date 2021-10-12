@@ -31,6 +31,7 @@
   ;; (chain add-button
   ;;        (add-event-listener "click" add-todo false))
   (render-favorites-link)
+  (render-share-link)
   (render-file-list folder-list)
   (render-file-list image-list)
   (render-file-list video-list)
@@ -83,6 +84,12 @@
     (let ((parent-element (chain document (get-element-by-id "top-right"))))
       (jfh-web::with-html-elements
           (span (a (onclick . "(prepare-for-favorite-list)") "Favorites")))))
+  t)
+
+(define-For-ps render-share-link ()
+  (let ((parent-element (chain document (get-element-by-id "top-right"))))
+    (jfh-web::with-html-elements
+        (span (style . "margin-left:25px;") (a (style . "text-decoration: none;") (href . "/share") "Share"))))
   t)
 
 (define-For-ps render-full-size (item-url created-date &optional do-after-delete)

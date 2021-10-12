@@ -5,6 +5,71 @@
 ;; allow parenscript and cl-who to work together
 (setf *js-string-delimiter* #\")
 
+;; this should not be the same directory as *TMP-DIRECTORY* and it
+;; should be initially empty (or non-existent)
+(defvar *tmp-test-directory*
+  #+(or :win32 :mswindows) #p"c:\\hunchentoot-temp\\test\\"
+  #-(or :win32 :mswindows) #p"/tmp/hunchentoot/test/")
+
+(defvar *tmp-test-files* nil)
+
+(let ((counter 0))
+  (defun handle-file (post-parameter)
+    (when (and post-parameter
+               (listp post-parameter))
+      (destructuring-bind (path file-name content-type)
+          post-parameter
+        (let ((new-path (make-pathname :name (format nil "hunchentoot-test-~A"
+                                                     (incf counter))
+                                       :type nil
+                                       :defaults *tmp-test-directory*)))
+          ;; strip directory info sent by Windows browsers
+          (when (search "Windows" (user-agent) :test 'char-equal)
+            (setq file-name (cl-ppcre:regex-replace ".*\\\\" file-name "")))
+          (rename-file path (ensure-directories-exist new-path))
+                    (push (list new-path file-name content-type) *tmp-test-files*))))))
+
+(defun make-share-page ()
+  (let ((file-upload-feedback))
+    (let ((favorite (awhen (post-parameter "favorite") (if (plusp (length it)) it "Shared"))))
+      (awhen (post-parameter "content-file")
+        (handle-file it)
+        (setf file-upload-feedback (format nil "File ~s uploaded and saved to ~s favorites list." (cadr it) favorite))))
+    (with-html-output-to-string
+        (*standard-output* nil :prologue t :indent t)
+      (:html :lang "en"
+             (:head
+              (:meta :charset "utf-8")
+              (:title "EZ Content Viewer - Share File")
+              (:link :type "text/css"
+                     :rel "stylesheet"
+                     :href (str (format nil "/styles.css?v=~a" (get-version))))
+              (:script :type "text/javascript"
+                       (str (jfh-web:define-ps-with-html-macro))
+                       (str (share-server-side-constants))))
+             (:body
+              (:div :id "file-list" :class "row" :hidden "false"
+                    (:div :id "left" :class "column"
+                          (:div :class "top-left"
+                                (:div
+                                 (:a :href "/main" "Home")))
+                          (:div :class "bottom" :id "left-bottom"
+                                (:div :id "file-upload-feedback" (if file-upload-feedback nil :hidden)
+                                      (aif file-upload-feedback (htm (str it))))
+                                (:h2 "Share a photo or video.")
+                                (:form :method :post :enctype "multipart/form-data"
+                                       (:p (:input :type :text :name "favorite" :placeholder "Name of favorite list"))
+                                       (:p "Click Here to Choose File: "
+                                           (:input :type :file :name "content-file"))
+                                       (:p (:button "Upload")))))
+                    (:div :id "right" :class "column"
+                          (:div :class "top-right" :id "top-right")
+                          (:div :class "bottom" :id "right-bottom"))))))))
+
+(define-easy-handler (content-share-page :uri "/share") ()
+  "HTTP endpoint for share page"
+  (make-share-page))
+
 (defun make-content-viewer-page ()
   "generate Content Viewer HTML page"
   (let* ((folder-index (parse-integer (or (parameter "fi" *request*) "0")))
