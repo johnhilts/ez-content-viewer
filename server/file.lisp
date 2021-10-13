@@ -3,8 +3,14 @@
 (define-info-class file path timestamp content-type alias-path image-length image-width image-orientation signaled-error)
 (define-info-class content folders images videos) ;; note: I can't inline this - it will break compilation if I don't do this on the top level
 
+(defparameter *webroot-directory-path* (truename (make-pathname :name "."))
+  "path for web root")
+
 (defparameter *content-root* "./media"
   "root of content media")
+
+(defparameter *share-root* (format nil "~a/shared/" *content-root*)
+  "root of shared content media (uploaded files)")
 
 (defmethod pathname= ((file-info1 file-info) (file-info2 file-info))
   (string-equal

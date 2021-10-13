@@ -33,6 +33,7 @@
 (defun start-web-app ()
   "start the web app"
   ;; TODO - add code here to set the file paths if the configuration exists
+  (ensure-directories-exist *share-root*)
   (start-server (getf (fetch-or-create-web-settings) :web-port))
   (publish-static-content))
 

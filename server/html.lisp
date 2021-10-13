@@ -5,29 +5,22 @@
 ;; allow parenscript and cl-who to work together
 (setf *js-string-delimiter* #\")
 
-;; this should not be the same directory as *TMP-DIRECTORY* and it
-;; should be initially empty (or non-existent)
-(defvar *tmp-test-directory*
-  #+(or :win32 :mswindows) #p"c:\\hunchentoot-temp\\test\\"
-  #-(or :win32 :mswindows) #p"/tmp/hunchentoot/test/")
-
-(defvar *tmp-test-files* nil)
-
 (let ((counter 0))
   (defun handle-file (post-parameter)
     (when (and post-parameter
                (listp post-parameter))
-      (destructuring-bind (path file-name content-type)
+      (destructuring-bind (server-temp-path uploaded-file-name content-type) ;; <-- see if we can incorporate content-type later
           post-parameter
-        (let ((new-path (make-pathname :name (format nil "hunchentoot-test-~A"
-                                                     (incf counter))
-                                       :type nil
-                                       :defaults *tmp-test-directory*)))
+        (let* ((new-filename (pathname-name uploaded-file-name))
+               (new-directory (format nil "~{~a/~}" (cdr (pathname-directory (subseq *share-root* 2)))))
+               (new-extension (pathname-type uploaded-file-name))
+               (new-path (make-pathname :name (format nil "~a-~d"  new-filename (incf counter))
+                                        :directory (list :absolute (format nil "~a~a" *webroot-directory-path* new-directory))
+                                        :type new-extension)))
           ;; strip directory info sent by Windows browsers
           (when (search "Windows" (user-agent) :test 'char-equal)
-            (setq file-name (cl-ppcre:regex-replace ".*\\\\" file-name "")))
-          (rename-file path (ensure-directories-exist new-path))
-                    (push (list new-path file-name content-type) *tmp-test-files*))))))
+            (setq uploaded-file-name (cl-ppcre:regex-replace ".*\\\\" uploaded-file-name "")))
+          (rename-file server-temp-path (ensure-directories-exist new-path)))))))
 
 (defun make-share-page ()
   (let ((file-upload-feedback))
