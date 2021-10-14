@@ -1,6 +1,6 @@
 (in-package #:content-viewer)
 
-(define-data-update-handler file-data-delete (model)
+(define-data-update-handler file-data-delete-handler (model)
   "delete file by path"
   (let ((delete-web-path (getf model :file-path)))
     (when delete-web-path

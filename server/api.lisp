@@ -4,19 +4,19 @@
   "REST endpoint for favorites"
   (case verb
     (:put
-     (favorite-data-update raw-data))
+     (favorite-data-update-handler raw-data))
     (:post
-     (favorite-data-add raw-data))
+     (favorite-data-add-handler raw-data))
     (:delete
-     (favorite-data-delete raw-data))
+     (favorite-data-delete-handler raw-data))
     (:get
-     (favorite-data-get id))))
+     (favorite-data-get-handler id))))
 
 (define-api-endpoint file-data *file-api-endpoint* ()
   "REST endpoint for files"
   (case verb
     (:delete
-     (file-data-delete raw-data))
+     (file-data-delete-handler raw-data))
     ))
 
 

@@ -28,20 +28,20 @@
   "get favorite list and encode as json"
   (encode-multiple-plists-to-json-as-string (fetch-or-create-favorites)))
 
-(defun favorite-data-get (id)
-  "get favorite by ID or entire list"
+(defun favorite-data-get-handler (id)
+  "get favorite by ID or entire list - API level handler"
   (if id
       (get-favorite (parse-integer id))
       (get-favorite-list)))
 
-(define-data-update-handler favorite-data-add (model)
+(defun favorite-data-add (model)
     "add favorite data to persisted data"
   (let ((new-id (getf model :id))
         (existing-favorites (fetch-or-create-favorites)))
     (write-complete-file *favorite-file-path* (append existing-favorites (list model)))
     (json:encode-json-to-string (list new-id))))
 
-(define-data-update-handler favorite-data-update (model)
+(defun favorite-data-update (model)
   "update favorite data and persisted data"
   (let* ((update-id (getf model :id))
          (existing-favorites (fetch-or-create-favorites))
@@ -51,8 +51,16 @@
     (write-complete-file *favorite-file-path* updated-favorites)
     (json:encode-json-to-string (list update-id))))
 
-(define-data-update-handler favorite-data-delete (model)
-  "delete favorite by ID"
+(define-data-update-handler favorite-data-add-handler (model)
+    "add favorite data to persisted data - API level handler"
+    (favorite-data-add model))
+
+(define-data-update-handler favorite-data-update-handler (model)
+  "update favorite data and persisted data - API level handler"
+  (favorite-data-update model))
+
+(define-data-update-handler favorite-data-delete-handler (model)
+  "delete favorite by ID - API level handler"
   (let ((delete-id (getf model :id)))
     (when delete-id
       (let* ((existing-favorites (fetch-or-create-favorites))
@@ -60,6 +68,29 @@
              (updated-favorites (splice-and-remove-item-in-list existing-favorites deleted-item-position)))
         (write-complete-file *favorite-file-path* updated-favorites)
         (json:encode-json-to-string (list delete-id))))))
+
+(defun get-favorite-by-name (favorite-name)
+  (let* ((existing-favorites (fetch-or-create-favorites))
+        (position (position-if #'(lambda (e) (string-equal (getf e :name) favorite-name)) existing-favorites)))
+    (when position
+      (nth position existing-favorites))))
+
+(defun get-next-index-for-favorites (favorite-list)
+  "calculate next index for favorite list"
+  (let ((id-list (mapcar #'(lambda (e) (getf e :id)) favorite-list)))
+    (if (length id-list)
+        (+ 1 (apply #'max id-list))
+        1)))
+
+(defun add-favorite-from-uploaded-file (favorite-name uploaded-file-name)
+  (let ((uploaded-file-name-web-path (subseq (namestring uploaded-file-name) (search (subseq *share-root* 1) (namestring uploaded-file-name))))
+        (existing-favorite (get-favorite-by-name favorite-name)))
+    (if existing-favorite
+        (progn
+          (push uploaded-file-name-web-path (getf existing-favorite :files))
+          (favorite-data-update existing-favorite))
+        (let ((new-favorite (list :id (get-next-index-for-favorites (fetch-or-create-favorites)) :name favorite-name :files (list uploaded-file-name-web-path))))
+          (favorite-data-add new-favorite)))))
 
 (define-info-class favorite path content-type)
 

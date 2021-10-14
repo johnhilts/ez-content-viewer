@@ -333,3 +333,29 @@ CONTENT-VIEWER> (let ((exif (make-exif (file-path (caddr (content-images (get-co
      => "/home/jfh/Pictures/"
         "/home/jfh/code/lisp/source/web/content-viewer/media/pictures/"
    #+end_src
+
+
+* adding new favorites for shared
+** In JS
+- [ ] Search favorites by name - if no match, need to add
+  - No existing code for search?? (double check - would probably exist in ui.lisp)
+  - Reference =add-favorite-item= for client side add logic
+    - it also calls the update function to add an entry to the favorite category
+      - The update logic can also be called independently, not just from the category add function
+- [ ] if there's a match, then add new entry by updating existing favorite category list
+- All server side logic can be found in favorite.lisp
+** Example of data and how it's converted to sexp
+   #+begin_src lisp
+     ;; first, we need to determine whether our category exists or not
+     ;; if it doesn't exist yet, then we need to add it, like so
+     (let ((raw-data "{\"id\":5,\"name\":\"Screenshots\",\"files\":[]}")) 
+       (CONVERT-DOTTED-PAIR-TO-PLIST
+        (JSON:DECODE-JSON-FROM-STRING raw-data)))
+     ;; => (:ID 5 :NAME "Screenshots" :FILES NIL) <= this is what we have to make on the server
+
+     ;; next, we update the favorite category - now guaranteed to exist - with the uploaded file info
+     (let ((raw-data "{\"id\":5,\"name\":\"Screenshots\",\"files\":[\"/media/shared/Screenshot from 2020-09-16 20-00-37-1.png\"]}")) 
+       (CONVERT-DOTTED-PAIR-TO-PLIST
+        (JSON:DECODE-JSON-FROM-STRING raw-data)))
+     ;; => (:ID 5 :NAME "Screenshots" :FILES ("/media/shared/Screenshot from 2020-09-16 20-00-37-1.png")) <= this is what we have to make on the server
+   #+end_src

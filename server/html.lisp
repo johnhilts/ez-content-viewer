@@ -6,27 +6,34 @@
 (setf *js-string-delimiter* #\")
 
 (let ((counter 0))
-  (defun handle-file (post-parameter)
-    (when (and post-parameter
-               (listp post-parameter))
-      (destructuring-bind (server-temp-path uploaded-file-name content-type) ;; <-- see if we can incorporate content-type later
-          post-parameter
-        (let* ((new-filename (pathname-name uploaded-file-name))
-               (new-directory (format nil "~{~a/~}" (cdr (pathname-directory (subseq *share-root* 2)))))
-               (new-extension (pathname-type uploaded-file-name))
-               (new-path (make-pathname :name (format nil "~a-~d"  new-filename (incf counter))
-                                        :directory (list :absolute (format nil "~a~a" *webroot-directory-path* new-directory))
-                                        :type new-extension)))
+  (defun handle-file-upload (post-parameter favorite-name)
+    "handle file upload"
+    (flet ((get-new-path (uploaded-file-name)
+             "get new path for the uploaded file"
+             (let ((new-filename (pathname-name uploaded-file-name))
+                   (new-directory (format nil "~{~a/~}" (cdr (pathname-directory (subseq *share-root* 2)))))
+                   (new-extension (pathname-type uploaded-file-name)))
+               (make-pathname :name (format nil "~a-~d"  new-filename (incf counter))
+                              :directory (list :absolute (format nil "~a~a" *webroot-directory-path* new-directory))
+                              :type new-extension))))
+      (when (and post-parameter
+                 (listp post-parameter))
+        (destructuring-bind (server-temp-path uploaded-file-name content-type) ;; <-- see if we can incorporate content-type later
+            post-parameter
+          (declare (ignorable content-type))
           ;; strip directory info sent by Windows browsers
           (when (search "Windows" (user-agent) :test 'char-equal)
             (setq uploaded-file-name (cl-ppcre:regex-replace ".*\\\\" uploaded-file-name "")))
-          (rename-file server-temp-path (ensure-directories-exist new-path)))))))
+          (multiple-value-bind (new old true)
+              (rename-file server-temp-path (ensure-directories-exist (get-new-path uploaded-file-name)))
+            (declare (ignorable new old))
+            (add-favorite-from-uploaded-file favorite-name true)))))))
 
 (defun make-share-page ()
   (let ((file-upload-feedback))
     (let ((favorite (awhen (post-parameter "favorite") (if (plusp (length it)) it "Shared"))))
       (awhen (post-parameter "content-file")
-        (handle-file it)
+        (handle-file-upload it favorite)
         (setf file-upload-feedback (format nil "File ~s uploaded and saved to ~s favorites list." (cadr it) favorite))))
     (with-html-output-to-string
         (*standard-output* nil :prologue t :indent t)
