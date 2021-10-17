@@ -41,6 +41,6 @@
 
 (defun buildapp ()
   (asdf:load-system :content-viewer)
-  (save-lisp-and-die "content-viewer-app"
+  (sb-ext:save-lisp-and-die "content-viewer-app"
                      :toplevel 'cl-user::main
                      :executable t))
