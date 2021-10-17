@@ -3,8 +3,8 @@
 (define-info-class file path timestamp content-type alias-path image-length image-width image-orientation signaled-error)
 (define-info-class content folders images videos) ;; note: I can't inline this - it will break compilation if I don't do this on the top level
 
-(defparameter *webroot-directory-path* (truename (make-pathname :name "."))
-  "path for web root")
+(defparameter *webroot-directory-path*
+  "path for web root - note: this needs to be set on app startup because this takes an absolute path")
 
 (defparameter *content-root* "./media"
   "root of content media")
